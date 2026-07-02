@@ -1,0 +1,78 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - link "panzera." [ref=e6] [cursor=pointer]:
+        - /url: /
+      - generic [ref=e7]:
+        - button "Toggle language" [ref=e8]: "[ PT-BR ]"
+        - button "Toggle theme" [ref=e9]: "[ light ]"
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - heading "Projects & Research" [level=2] [ref=e13]
+        - paragraph [ref=e14]: ~/studies/recent-work
+      - generic [ref=e15]:
+        - link "Security Network Scanner A lightweight tool for discovering active devices and open ports on local networks. Focuses on stealth and speed. Go Networking CLI" [ref=e17] [cursor=pointer]:
+          - /url: /project/1
+          - generic [ref=e18]:
+            - generic [ref=e19]:
+              - generic [ref=e20]:
+                - img [ref=e22]
+                - generic [ref=e24]: Security
+              - img [ref=e25]
+            - heading "Network Scanner" [level=3] [ref=e29]
+            - paragraph [ref=e30]: A lightweight tool for discovering active devices and open ports on local networks. Focuses on stealth and speed.
+          - generic [ref=e31]:
+            - generic [ref=e32]: Go
+            - generic [ref=e33]: Networking
+            - generic [ref=e34]: CLI
+        - link "Research Zero-Trust Architecture A case study and implementation guide for adopting zero-trust principles in small business infrastructures. Architecture Identity Docs" [ref=e36] [cursor=pointer]:
+          - /url: /project/2
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e39]:
+                - img [ref=e41]
+                - generic [ref=e43]: Research
+              - img [ref=e44]
+            - heading "Zero-Trust Architecture" [level=3] [ref=e48]
+            - paragraph [ref=e49]: A case study and implementation guide for adopting zero-trust principles in small business infrastructures.
+          - generic [ref=e50]:
+            - generic [ref=e51]: Architecture
+            - generic [ref=e52]: Identity
+            - generic [ref=e53]: Docs
+        - link "Infrastructure Malware Sandbox Automated environment for analyzing suspicious executables in isolated, ephemeral containers. Docker Python Analysis" [ref=e55] [cursor=pointer]:
+          - /url: /project/3
+          - generic [ref=e56]:
+            - generic [ref=e57]:
+              - generic [ref=e58]:
+                - img [ref=e60]
+                - generic [ref=e63]: Infrastructure
+              - img [ref=e64]
+            - heading "Malware Sandbox" [level=3] [ref=e68]
+            - paragraph [ref=e69]: Automated environment for analyzing suspicious executables in isolated, ephemeral containers.
+          - generic [ref=e70]:
+            - generic [ref=e71]: Docker
+            - generic [ref=e72]: Python
+            - generic [ref=e73]: Analysis
+        - link "Open Source SysAdmin Dashboard A terminal-based monitoring dashboard for real-time server health and security log aggregation. Rust TUI Linux" [ref=e75] [cursor=pointer]:
+          - /url: /project/4
+          - generic [ref=e76]:
+            - generic [ref=e77]:
+              - generic [ref=e78]:
+                - img [ref=e80]
+                - generic [ref=e82]: Open Source
+              - img [ref=e83]
+            - heading "SysAdmin Dashboard" [level=3] [ref=e87]
+            - paragraph [ref=e88]: A terminal-based monitoring dashboard for real-time server health and security log aggregation.
+          - generic [ref=e89]:
+            - generic [ref=e90]: Rust
+            - generic [ref=e91]: TUI
+            - generic [ref=e92]: Linux
+  - contentinfo [ref=e93]:
+    - generic [ref=e94]:
+      - generic [ref=e95]: © 2026 Panzera.
+      - generic [ref=e96]:
+        - link "GitHub" [ref=e97] [cursor=pointer]:
+          - /url: https://github.com/lucaspanzera1
+        - link "LinkedIn" [ref=e98] [cursor=pointer]:
+          - /url: https://www.linkedin.com/in/lucas-panzera/
