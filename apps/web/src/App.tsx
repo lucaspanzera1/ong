@@ -4,6 +4,10 @@ import { Header } from './components/Header';
 import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
 import { ProjectDetails } from './pages/ProjectDetails';
+import { Admin } from './pages/Admin';
+import { ProtectedRoute } from './components/ProtectedRoute';
+
+const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
 function App() {
   const [lang, setLang] = useState<'EN' | 'PT'>('EN');
@@ -16,6 +20,14 @@ function App() {
           <Routes>
             <Route path="/" element={<Projects lang={lang} />} />
             <Route path="/project/:id" element={<ProjectDetails lang={lang} />} />
+            <Route
+              path={ADMIN_PATH}
+              element={
+                <ProtectedRoute>
+                  <Admin />
+                </ProtectedRoute>
+              }
+            />
           </Routes>
         </main>
         <Footer />
