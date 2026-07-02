@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 
-export function Header() {
+interface HeaderProps {
+  lang: 'EN' | 'PT';
+  setLang: (lang: 'EN' | 'PT') => void;
+}
+
+export function Header({ lang, setLang }: HeaderProps) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
@@ -40,13 +45,22 @@ export function Header() {
           panzera.
         </a>
         
-        <button
-          onClick={toggleTheme}
-          className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors"
-          aria-label="Toggle theme"
-        >
-          [ {isDark ? 'dark' : 'light'} ]
-        </button>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => setLang(lang === 'EN' ? 'PT' : 'EN')}
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors"
+            aria-label="Toggle language"
+          >
+            [ {lang === 'EN' ? 'PT-BR' : 'EN'} ]
+          </button>
+          <button
+            onClick={toggleTheme}
+            className="font-mono text-[10px] uppercase tracking-[0.2em] text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition-colors"
+            aria-label="Toggle theme"
+          >
+            [ {isDark ? 'dark' : 'light'} ]
+          </button>
+        </div>
       </div>
     </motion.header>
   );

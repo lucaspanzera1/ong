@@ -1,55 +1,109 @@
 import { motion } from 'framer-motion';
 import { ExternalLink, Terminal, Shield, Cpu, Activity } from 'lucide-react';
 
-const projects = [
-  {
-    id: 1,
-    title: 'Network Scanner',
-    description: 'A lightweight tool for discovering active devices and open ports on local networks. Focuses on stealth and speed.',
-    category: 'Security',
-    icon: Shield,
-    tags: ['Go', 'Networking', 'CLI'],
-    link: '#',
-  },
-  {
-    id: 2,
-    title: 'Zero-Trust Architecture',
-    description: 'A case study and implementation guide for adopting zero-trust principles in small business infrastructures.',
-    category: 'Research',
-    icon: Activity,
-    tags: ['Architecture', 'Identity', 'Docs'],
-    link: '#',
-  },
-  {
-    id: 3,
-    title: 'Malware Sandbox',
-    description: 'Automated environment for analyzing suspicious executables in isolated, ephemeral containers.',
-    category: 'Infrastructure',
-    icon: Cpu,
-    tags: ['Docker', 'Python', 'Analysis'],
-    link: '#',
-  },
-  {
-    id: 4,
-    title: 'SysAdmin Dashboard',
-    description: 'A terminal-based monitoring dashboard for real-time server health and security log aggregation.',
-    category: 'Open Source',
-    icon: Terminal,
-    tags: ['Rust', 'TUI', 'Linux'],
-    link: '#',
-  }
-];
+interface ProjectsProps {
+  lang: 'EN' | 'PT';
+}
 
-export function Projects() {
+const content = {
+  EN: {
+    sectionTitle: "Projects & Research",
+    sectionSubtitle: "~/studies/recent-work",
+    projects: [
+      {
+        id: 1,
+        title: 'Network Scanner',
+        description: 'A lightweight tool for discovering active devices and open ports on local networks. Focuses on stealth and speed.',
+        category: 'Security',
+        icon: Shield,
+        tags: ['Go', 'Networking', 'CLI'],
+        link: '#',
+      },
+      {
+        id: 2,
+        title: 'Zero-Trust Architecture',
+        description: 'A case study and implementation guide for adopting zero-trust principles in small business infrastructures.',
+        category: 'Research',
+        icon: Activity,
+        tags: ['Architecture', 'Identity', 'Docs'],
+        link: '#',
+      },
+      {
+        id: 3,
+        title: 'Malware Sandbox',
+        description: 'Automated environment for analyzing suspicious executables in isolated, ephemeral containers.',
+        category: 'Infrastructure',
+        icon: Cpu,
+        tags: ['Docker', 'Python', 'Analysis'],
+        link: '#',
+      },
+      {
+        id: 4,
+        title: 'SysAdmin Dashboard',
+        description: 'A terminal-based monitoring dashboard for real-time server health and security log aggregation.',
+        category: 'Open Source',
+        icon: Terminal,
+        tags: ['Rust', 'TUI', 'Linux'],
+        link: '#',
+      }
+    ]
+  },
+  PT: {
+    sectionTitle: "Projetos e Pesquisa",
+    sectionSubtitle: "~/estudos/trabalhos-recentes",
+    projects: [
+      {
+        id: 1,
+        title: 'Scanner de Rede',
+        description: 'Uma ferramenta leve para descobrir dispositivos ativos e portas abertas em redes locais. Foco em stealth e velocidade.',
+        category: 'Segurança',
+        icon: Shield,
+        tags: ['Go', 'Redes', 'CLI'],
+        link: '#',
+      },
+      {
+        id: 2,
+        title: 'Arquitetura Zero-Trust',
+        description: 'Um estudo de caso e guia de implementação para adoção de princípios zero-trust em infraestruturas de pequenas empresas.',
+        category: 'Pesquisa',
+        icon: Activity,
+        tags: ['Arquitetura', 'Identidade', 'Docs'],
+        link: '#',
+      },
+      {
+        id: 3,
+        title: 'Sandbox de Malware',
+        description: 'Ambiente automatizado para analisar executáveis suspeitos em contêineres efêmeros e isolados.',
+        category: 'Infraestrutura',
+        icon: Cpu,
+        tags: ['Docker', 'Python', 'Análise'],
+        link: '#',
+      },
+      {
+        id: 4,
+        title: 'Dashboard SysAdmin',
+        description: 'Um painel de monitoramento baseado em terminal para saúde de servidores em tempo real e agregação de logs de segurança.',
+        category: 'Código Aberto',
+        icon: Terminal,
+        tags: ['Rust', 'TUI', 'Linux'],
+        link: '#',
+      }
+    ]
+  }
+};
+
+export function Projects({ lang }: ProjectsProps) {
+  const currentContent = content[lang];
+
   return (
     <section id="projects" className="py-24 px-6 max-w-5xl mx-auto">
       <div className="mb-16 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
-        <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2 transition-colors duration-300">Projects & Research</h2>
-        <p className="text-neutral-500 dark:text-neutral-400 font-mono text-sm transition-colors duration-300">~/studies/recent-work</p>
+        <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2 transition-colors duration-300">{currentContent.sectionTitle}</h2>
+        <p className="text-neutral-500 dark:text-neutral-400 font-mono text-sm transition-colors duration-300">{currentContent.sectionSubtitle}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {projects.map((project, index) => {
+        {currentContent.projects.map((project, index) => {
           const Icon = project.icon;
           return (
             <motion.div
