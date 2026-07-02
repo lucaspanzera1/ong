@@ -7,6 +7,8 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { TagsModule } from './tags/tags.module';
 import { ArticlesModule } from './articles/articles.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { UploadsModule } from './uploads/uploads.module';
 
 @Module({
   imports: [
@@ -23,6 +25,11 @@ import { ArticlesModule } from './articles/articles.module';
     AuthModule,
     TagsModule,
     ArticlesModule,
+    UploadsModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/s/uploads',
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],

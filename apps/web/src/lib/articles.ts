@@ -78,3 +78,22 @@ export async function updateArticle(slug: string, updates: ArticleUpdate): Promi
   }
   return res.json();
 }
+
+export async function uploadImage(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch(`${API_URL}/uploads`, {
+    method: 'POST',
+    credentials: 'include',
+    body: formData,
+  });
+
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.message ?? 'Falha ao fazer upload da imagem');
+  }
+
+  const data = await res.json();
+  return `${API_URL}${data.url}`;
+}
