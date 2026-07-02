@@ -2,8 +2,18 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { createArticle, listArticles, type Article } from '../lib/articles';
+import {
+  createArticle,
+  listArticlesForAdmin,
+  updateArticle,
+  type Article,
+  type ArticleStatus,
+} from '../lib/articles';
 import { listTags, type Tag } from '../lib/tags';
+
+function formatDate(iso: string): string {
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'medium' }).format(new Date(iso));
+}
 
 export function ArticleManager() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -11,11 +21,13 @@ export function ArticleManager() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [editingSlug, setEditingSlug] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [statusUpdatingSlug, setStatusUpdatingSlug] = useState<string | null>(null);
 
   useEffect(() => {
-    listArticles().then(setArticles).catch(() => {});
+    listArticlesForAdmin().then(setArticles).catch(() => {});
     listTags().then(setAvailableTags).catch(() => {});
   }, []);
 
@@ -23,7 +35,22 @@ export function ArticleManager() {
     setSelectedTags(prev => (prev.includes(name) ? prev.filter(t => t !== name) : [...prev, name]));
   }
 
-  async function handleCreateArticle(e: React.FormEvent) {
+  function resetForm() {
+    setTitle('');
+    setContent('');
+    setSelectedTags([]);
+    setEditingSlug(null);
+  }
+
+  function startEdit(article: Article) {
+    setEditingSlug(article.slug);
+    setTitle(article.title);
+    setContent(article.content);
+    setSelectedTags(article.tags);
+    setError(null);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
       setError('Preencha o título e o conteúdo do artigo.');
@@ -32,17 +59,41 @@ export function ArticleManager() {
     setSubmitting(true);
     setError(null);
     try {
-      const article = await createArticle(title.trim(), content.trim(), selectedTags);
-      setArticles(prev => [article, ...prev]);
-      setTitle('');
-      setContent('');
-      setSelectedTags([]);
+      if (editingSlug) {
+        const updated = await updateArticle(editingSlug, {
+          title: title.trim(),
+          content: content.trim(),
+          tags: selectedTags,
+        });
+        setArticles(prev => prev.map(a => (a.slug === editingSlug ? updated : a)));
+      } else {
+        const article = await createArticle(title.trim(), content.trim(), selectedTags);
+        setArticles(prev => [article, ...prev]);
+      }
+      resetForm();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Falha ao criar artigo');
+      setError(err instanceof Error ? err.message : 'Falha ao salvar artigo');
     } finally {
       setSubmitting(false);
     }
   }
+
+  async function toggleStatus(article: Article) {
+    setStatusUpdatingSlug(article.slug);
+    try {
+      const nextStatus: ArticleStatus = article.status === 'published' ? 'archived' : 'published';
+      const updated = await updateArticle(article.slug, { status: nextStatus });
+      setArticles(prev => prev.map(a => (a.slug === article.slug ? updated : a)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao atualizar status');
+    } finally {
+      setStatusUpdatingSlug(null);
+    }
+  }
+
+  const publishedCount = articles.filter(a => a.status === 'published').length;
+  const archivedCount = articles.length - publishedCount;
+  const isEditing = editingSlug !== null;
 
   return (
     <section className="bg-white/50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-sm">
@@ -59,14 +110,30 @@ export function ArticleManager() {
 
         <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-sm">
           <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
-          <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">{articles.length} artigos publicados</span>
+          <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
+            {publishedCount} públicos · {archivedCount} arquivados
+          </span>
         </div>
       </div>
 
-      <form onSubmit={handleCreateArticle} className="flex flex-col gap-5 mb-10 p-6 rounded-2xl bg-white dark:bg-black/20 border border-neutral-100 dark:border-neutral-800/50 shadow-sm">
-        <div>
-          <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">Novo Artigo</h3>
-          <p className="text-xs text-neutral-500 mb-5">O conteúdo é escrito em Markdown e renderizado na página pública.</p>
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5 mb-10 p-6 rounded-2xl bg-white dark:bg-black/20 border border-neutral-100 dark:border-neutral-800/50 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">
+              {isEditing ? 'Editar Artigo' : 'Novo Artigo'}
+            </h3>
+            <p className="text-xs text-neutral-500">O conteúdo é escrito em Markdown e renderizado na página pública.</p>
+          </div>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={resetForm}
+              className="text-xs font-medium text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center gap-1 shrink-0"
+            >
+              <span className="material-symbols-outlined text-base">close</span>
+              Cancelar edição
+            </button>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -143,41 +210,85 @@ export function ArticleManager() {
           className="mt-2 w-full sm:w-auto sm:self-end px-6 py-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-medium transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed group shadow-md hover:shadow-lg"
         >
           <span className={`material-symbols-outlined text-lg ${submitting ? 'animate-spin' : 'group-hover:scale-110 transition-transform'}`}>
-            {submitting ? 'progress_activity' : 'add_circle'}
+            {submitting ? 'progress_activity' : isEditing ? 'save' : 'add_circle'}
           </span>
-          {submitting ? 'Publicando...' : 'Publicar Artigo'}
+          {submitting ? 'Salvando...' : isEditing ? 'Salvar Alterações' : 'Publicar Artigo'}
         </button>
       </form>
 
       <div className="bg-neutral-50/80 dark:bg-black/20 rounded-2xl p-6 lg:p-8 border border-neutral-200/50 dark:border-neutral-800/50 min-h-[200px]">
         <h3 className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest mb-6">
-          Artigos Publicados
+          Todos os Artigos
         </h3>
 
         <div className="flex flex-col gap-3">
-          {articles.map(article => (
-            <Link
-              key={article._id}
-              to={`/articles/${article.slug}`}
-              className="group flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 hover:border-purple-500/40 hover:bg-purple-50/50 dark:hover:bg-purple-500/10 transition-all shadow-sm hover:shadow-md"
-            >
-              <div className="flex flex-col gap-1 min-w-0">
-                <span className="font-medium text-neutral-800 dark:text-neutral-200 group-hover:text-purple-700 dark:group-hover:text-purple-300 truncate">
-                  {article.title}
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {article.tags.map(tag => (
-                    <span key={tag} className="text-[11px] px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
-                      {tag}
+          {articles.map(article => {
+            const isPublished = article.status === 'published';
+            const wasEdited = article.updatedAt !== article.createdAt;
+            return (
+              <div
+                key={article._id}
+                className="group flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 shadow-sm transition-all"
+              >
+                <div className="flex flex-col gap-1.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-neutral-800 dark:text-neutral-200 truncate">{article.title}</span>
+                    <span
+                      className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wide shrink-0 ${
+                        isPublished
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                          : 'bg-neutral-200/70 dark:bg-neutral-700/50 text-neutral-500 dark:text-neutral-400'
+                      }`}
+                    >
+                      {isPublished ? 'Público' : 'Arquivado'}
                     </span>
-                  ))}
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {article.tags.map(tag => (
+                      <span key={tag} className="text-[11px] px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <p className="text-[11px] font-mono text-neutral-400 dark:text-neutral-500">
+                    Publicado em {formatDate(article.createdAt)}
+                    {wasEdited && ` · Editado em ${formatDate(article.updatedAt)}`}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1 shrink-0">
+                  {isPublished && (
+                    <Link
+                      to={`/articles/${article.slug}`}
+                      title="Ver artigo"
+                      className="p-2 rounded-lg text-neutral-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => startEdit(article)}
+                    title="Editar"
+                    className="p-2 rounded-lg text-neutral-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[20px]">edit</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => toggleStatus(article)}
+                    disabled={statusUpdatingSlug === article.slug}
+                    title={isPublished ? 'Arquivar' : 'Publicar'}
+                    className="p-2 rounded-lg text-neutral-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-500/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <span className={`material-symbols-outlined text-[20px] ${statusUpdatingSlug === article.slug ? 'animate-spin' : ''}`}>
+                      {statusUpdatingSlug === article.slug ? 'progress_activity' : isPublished ? 'archive' : 'unarchive'}
+                    </span>
+                  </button>
                 </div>
               </div>
-              <span className="material-symbols-outlined text-neutral-300 group-hover:text-purple-500 group-hover:translate-x-1 transition-all shrink-0">
-                arrow_forward
-              </span>
-            </Link>
-          ))}
+            );
+          })}
           {articles.length === 0 && (
             <div className="w-full flex flex-col items-center justify-center text-center text-neutral-400 py-16">
               <div className="w-16 h-16 rounded-full bg-neutral-200/50 dark:bg-neutral-800/50 flex items-center justify-center mb-4">

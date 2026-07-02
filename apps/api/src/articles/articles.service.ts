@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Article, ArticleDocument } from './schemas/article.schema';
+import { Article, ArticleDocument, ArticleStatus } from './schemas/article.schema';
 
 const COMBINING_DIACRITICS = /[̀-ͯ]/g;
 
@@ -16,16 +16,27 @@ function slugify(title: string): string {
     .replace(/-+/g, '-');
 }
 
+export interface ArticleUpdate {
+  title?: string;
+  content?: string;
+  tags?: string[];
+  status?: ArticleStatus;
+}
+
 @Injectable()
 export class ArticlesService {
   constructor(@InjectModel(Article.name) private readonly articleModel: Model<ArticleDocument>) {}
 
-  findAll(): Promise<Article[]> {
+  findPublished(): Promise<Article[]> {
+    return this.articleModel.find({ status: 'published' }).sort({ createdAt: -1 }).exec();
+  }
+
+  findAllForAdmin(): Promise<Article[]> {
     return this.articleModel.find().sort({ createdAt: -1 }).exec();
   }
 
-  async findBySlug(slug: string): Promise<Article> {
-    const article = await this.articleModel.findOne({ slug }).exec();
+  async findPublishedBySlug(slug: string): Promise<Article> {
+    const article = await this.articleModel.findOne({ slug, status: 'published' }).exec();
     if (!article) {
       throw new NotFoundException('Article not found');
     }
@@ -42,5 +53,17 @@ export class ArticlesService {
       }
       throw err;
     }
+  }
+
+  async update(slug: string, updates: ArticleUpdate): Promise<Article> {
+    const article = await this.articleModel.findOne({ slug }).exec();
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+    if (updates.title !== undefined) article.title = updates.title;
+    if (updates.content !== undefined) article.content = updates.content;
+    if (updates.tags !== undefined) article.tags = updates.tags;
+    if (updates.status !== undefined) article.status = updates.status;
+    return article.save();
   }
 }
