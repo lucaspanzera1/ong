@@ -5,6 +5,7 @@ import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Admin } from './pages/Admin';
+import { Tags } from './pages/Tags';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 
@@ -15,12 +16,13 @@ function App() {
 
   return (
     <Router>
-      <div className="min-h-screen selection:bg-neutral-200">
+      <div className="min-h-[100dvh] selection:bg-neutral-200 flex flex-col">
         <Header lang={lang} setLang={setLang} />
-        <main>
+        <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Projects lang={lang} />} />
             <Route path="/project/:id" element={<ProjectDetails lang={lang} />} />
+            <Route path="/tags" element={<Tags lang={lang} />} />
             <Route
               path={ADMIN_PATH}
               element={
