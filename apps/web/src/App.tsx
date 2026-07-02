@@ -6,6 +6,8 @@ import { Footer } from './components/Footer';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Admin } from './pages/Admin';
 import { Tags } from './pages/Tags';
+import { Articles } from './pages/Articles';
+import { ArticleDetails } from './pages/ArticleDetails';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 
@@ -23,6 +25,8 @@ function App() {
             <Route path="/" element={<Projects lang={lang} />} />
             <Route path="/project/:id" element={<ProjectDetails lang={lang} />} />
             <Route path="/tags" element={<Tags lang={lang} />} />
+            <Route path="/articles" element={<Articles lang={lang} />} />
+            <Route path="/articles/:slug" element={<ArticleDetails lang={lang} />} />
             <Route
               path={ADMIN_PATH}
               element={
