@@ -1,5 +1,4 @@
-import { ExternalLink, Terminal, Shield, Cpu, Activity } from 'lucide-react';
-import React from 'react';
+import { Terminal, Shield, Cpu, Activity } from 'lucide-react';
 
 export const projectsData = {
   EN: {
