@@ -6,6 +6,7 @@ import { Footer } from './components/Footer';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Admin } from './pages/Admin';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { NotFound } from './pages/NotFound';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
@@ -28,6 +29,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="*" element={<NotFound lang={lang} />} />
           </Routes>
         </main>
         <Footer />
