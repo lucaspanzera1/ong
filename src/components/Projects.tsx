@@ -1,99 +1,14 @@
 import { motion } from 'framer-motion';
-import { ExternalLink, Terminal, Shield, Cpu, Activity } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { projectsData } from '../data/projects';
 
 interface ProjectsProps {
   lang: 'EN' | 'PT';
 }
 
-const content = {
-  EN: {
-    sectionTitle: "Projects & Research",
-    sectionSubtitle: "~/studies/recent-work",
-    projects: [
-      {
-        id: 1,
-        title: 'Network Scanner',
-        description: 'A lightweight tool for discovering active devices and open ports on local networks. Focuses on stealth and speed.',
-        category: 'Security',
-        icon: Shield,
-        tags: ['Go', 'Networking', 'CLI'],
-        link: '#',
-      },
-      {
-        id: 2,
-        title: 'Zero-Trust Architecture',
-        description: 'A case study and implementation guide for adopting zero-trust principles in small business infrastructures.',
-        category: 'Research',
-        icon: Activity,
-        tags: ['Architecture', 'Identity', 'Docs'],
-        link: '#',
-      },
-      {
-        id: 3,
-        title: 'Malware Sandbox',
-        description: 'Automated environment for analyzing suspicious executables in isolated, ephemeral containers.',
-        category: 'Infrastructure',
-        icon: Cpu,
-        tags: ['Docker', 'Python', 'Analysis'],
-        link: '#',
-      },
-      {
-        id: 4,
-        title: 'SysAdmin Dashboard',
-        description: 'A terminal-based monitoring dashboard for real-time server health and security log aggregation.',
-        category: 'Open Source',
-        icon: Terminal,
-        tags: ['Rust', 'TUI', 'Linux'],
-        link: '#',
-      }
-    ]
-  },
-  PT: {
-    sectionTitle: "Projetos e Pesquisa",
-    sectionSubtitle: "~/estudos/trabalhos-recentes",
-    projects: [
-      {
-        id: 1,
-        title: 'Scanner de Rede',
-        description: 'Uma ferramenta leve para descobrir dispositivos ativos e portas abertas em redes locais. Foco em stealth e velocidade.',
-        category: 'Segurança',
-        icon: Shield,
-        tags: ['Go', 'Redes', 'CLI'],
-        link: '#',
-      },
-      {
-        id: 2,
-        title: 'Arquitetura Zero-Trust',
-        description: 'Um estudo de caso e guia de implementação para adoção de princípios zero-trust em infraestruturas de pequenas empresas.',
-        category: 'Pesquisa',
-        icon: Activity,
-        tags: ['Arquitetura', 'Identidade', 'Docs'],
-        link: '#',
-      },
-      {
-        id: 3,
-        title: 'Sandbox de Malware',
-        description: 'Ambiente automatizado para analisar executáveis suspeitos em contêineres efêmeros e isolados.',
-        category: 'Infraestrutura',
-        icon: Cpu,
-        tags: ['Docker', 'Python', 'Análise'],
-        link: '#',
-      },
-      {
-        id: 4,
-        title: 'Dashboard SysAdmin',
-        description: 'Um painel de monitoramento baseado em terminal para saúde de servidores em tempo real e agregação de logs de segurança.',
-        category: 'Código Aberto',
-        icon: Terminal,
-        tags: ['Rust', 'TUI', 'Linux'],
-        link: '#',
-      }
-    ]
-  }
-};
-
 export function Projects({ lang }: ProjectsProps) {
-  const currentContent = content[lang];
+  const currentContent = projectsData[lang];
 
   return (
     <section id="projects" className="py-24 px-6 max-w-5xl mx-auto">
@@ -113,8 +28,8 @@ export function Projects({ lang }: ProjectsProps) {
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
             >
-              <a 
-                href={project.link}
+              <Link 
+                to={project.link}
                 className="group relative flex flex-col justify-between h-full p-6 bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-neutral-300 transition-colors duration-300"
               >
                 {/* Top accent line */}
@@ -148,7 +63,7 @@ export function Projects({ lang }: ProjectsProps) {
                     </span>
                   ))}
                 </div>
-              </a>
+              </Link>
             </motion.div>
           );
         })}
