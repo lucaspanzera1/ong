@@ -8,6 +8,7 @@ import { Admin } from './pages/Admin';
 import { Tags } from './pages/Tags';
 import { Articles } from './pages/Articles';
 import { ArticleDetails } from './pages/ArticleDetails';
+import { ArticleEditor } from './pages/ArticleEditor';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 
@@ -32,6 +33,22 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Admin />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={`${ADMIN_PATH}/articles/new`}
+              element={
+                <ProtectedRoute>
+                  <ArticleEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={`${ADMIN_PATH}/articles/:slug/edit`}
+              element={
+                <ProtectedRoute>
+                  <ArticleEditor />
                 </ProtectedRoute>
               }
             />
