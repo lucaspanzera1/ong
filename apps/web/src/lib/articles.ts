@@ -13,6 +13,15 @@ export interface Article {
   status: ArticleStatus;
   createdAt: string;
   updatedAt: string;
+  upvotes: number;
+  downvotes: number;
+  views: number;
+}
+
+export type UserVote = 1 | -1 | null;
+
+export interface ArticleWithVote extends Article {
+  userVote: UserVote;
 }
 
 export interface ArticleUpdate {
@@ -44,9 +53,26 @@ export async function listArticlesForAdmin(): Promise<Article[]> {
   return res.json();
 }
 
-export async function getArticle(slug: string): Promise<Article> {
-  const res = await fetch(`${API_URL}/articles/${slug}`);
+export async function getArticle(slug: string): Promise<ArticleWithVote> {
+  const res = await fetch(`${API_URL}/articles/${slug}`, { credentials: 'include' });
   if (!res.ok) throw new Error('Artigo não encontrado');
+  return res.json();
+}
+
+export async function voteArticle(
+  slug: string,
+  value: 1 | -1,
+): Promise<{ upvotes: number; downvotes: number; userVote: UserVote }> {
+  const res = await fetch(`${API_URL}/articles/${slug}/vote`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ value }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.message ?? 'Falha ao registrar voto');
+  }
   return res.json();
 }
 

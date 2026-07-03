@@ -27,6 +27,15 @@ export class Article {
 
   @Prop({ type: String, enum: ['published', 'archived'], default: 'published' })
   status: ArticleStatus;
+
+  @Prop({ type: Number, default: 0 })
+  upvotes: number;
+
+  @Prop({ type: Number, default: 0 })
+  downvotes: number;
+
+  @Prop({ type: Number, default: 0 })
+  views: number;
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);

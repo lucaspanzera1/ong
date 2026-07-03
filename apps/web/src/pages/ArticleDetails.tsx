@@ -1,10 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft, FileText, ThumbsUp, ThumbsDown, Eye } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getArticle, articleExcerpt, articleTitle, articleBody, type Article } from '../lib/articles';
+import {
+  getArticle,
+  voteArticle,
+  articleExcerpt,
+  articleTitle,
+  articleBody,
+  type ArticleWithVote,
+} from '../lib/articles';
 import { listTags, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ArticleDetailsProps {
@@ -17,9 +24,10 @@ function formatDate(iso: string, lang: 'EN' | 'PT'): string {
 
 export function ArticleDetails({ lang }: ArticleDetailsProps) {
   const { slug } = useParams();
-  const [article, setArticle] = useState<Article | null>(null);
+  const [article, setArticle] = useState<ArticleWithVote | null>(null);
   const [tags, setTags] = useState<Tag[]>([]);
   const [notFound, setNotFound] = useState(false);
+  const [voting, setVoting] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -28,6 +36,20 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
       .catch(() => setNotFound(true));
     listTags().then(setTags).catch(() => {});
   }, [slug]);
+
+  async function handleVote(value: 1 | -1) {
+    if (!slug || !article || voting) return;
+    setVoting(true);
+    const previous = article;
+    try {
+      const result = await voteArticle(slug, value);
+      setArticle({ ...previous, ...result });
+    } catch {
+      // keep previous state; the button simply doesn't update
+    } finally {
+      setVoting(false);
+    }
+  }
 
   if (notFound) {
     return (
@@ -94,6 +116,43 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
 
       <div className="border-t border-black/10 dark:border-white/10 py-12 prose prose-neutral dark:prose-invert max-w-none">
         <ReactMarkdown remarkPlugins={[remarkGfm]}>{articleBody(article, lang)}</ReactMarkdown>
+      </div>
+
+      <div className="border-t border-black/10 dark:border-white/10 pt-8 flex flex-wrap items-center gap-6">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => handleVote(1)}
+            disabled={voting}
+            aria-pressed={article.userVote === 1}
+            className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-sm transition-colors disabled:opacity-50 ${
+              article.userVote === 1
+                ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900'
+                : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-600'
+            }`}
+          >
+            <ThumbsUp className="w-4 h-4" />
+            {article.upvotes}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleVote(-1)}
+            disabled={voting}
+            aria-pressed={article.userVote === -1}
+            className={`flex items-center gap-1.5 px-3 py-1.5 border font-mono text-sm transition-colors disabled:opacity-50 ${
+              article.userVote === -1
+                ? 'border-neutral-900 bg-neutral-900 text-white dark:border-white dark:bg-white dark:text-neutral-900'
+                : 'border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:border-neutral-400 dark:hover:border-neutral-600'
+            }`}
+          >
+            <ThumbsDown className="w-4 h-4" />
+            {article.downvotes}
+          </button>
+        </div>
+        <div className="flex items-center gap-1.5 font-mono text-sm text-neutral-400 dark:text-neutral-600">
+          <Eye className="w-4 h-4" />
+          {article.views} {lang === 'EN' ? 'views' : 'visualizações'}
+        </div>
       </div>
     </motion.article>
   );

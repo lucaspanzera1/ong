@@ -6,17 +6,28 @@ import {
   Param,
   Patch,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
+import type { Request, Response } from 'express';
 import { SessionGuard } from '../auth/auth.guard';
 import { Article, ArticleStatus } from './schemas/article.schema';
-import { ArticlesService } from './articles.service';
+import {
+  ArticlesService,
+  ArticleWithVote,
+  VoteResult,
+} from './articles.service';
+import { VisitorService } from './visitor.service';
 
 const ARTICLE_STATUSES: ArticleStatus[] = ['published', 'archived'];
 
 @Controller('articles')
 export class ArticlesController {
-  constructor(private readonly articlesService: ArticlesService) {}
+  constructor(
+    private readonly articlesService: ArticlesService,
+    private readonly visitorService: VisitorService,
+  ) {}
 
   @Get()
   findAll(): Promise<Article[]> {
@@ -30,8 +41,32 @@ export class ArticlesController {
   }
 
   @Get(':slug')
-  findOne(@Param('slug') slug: string): Promise<Article> {
-    return this.articlesService.findPublishedBySlug(slug);
+  async findOne(
+    @Param('slug') slug: string,
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<Article & { userVote: ArticleWithVote['userVote'] }> {
+    const { voterHash, ipHash } = this.visitorService.identify(req, res);
+    const { article, userVote } = await this.articlesService.viewAndGet(
+      slug,
+      voterHash,
+      ipHash,
+    );
+    return { ...article.toObject(), userVote };
+  }
+
+  @Post(':slug/vote')
+  vote(
+    @Param('slug') slug: string,
+    @Body() body: { value?: number },
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<VoteResult> {
+    if (body.value !== 1 && body.value !== -1) {
+      throw new BadRequestException('value must be 1 or -1');
+    }
+    const { voterHash, ipHash } = this.visitorService.identify(req, res);
+    return this.articlesService.vote(slug, body.value, voterHash, ipHash);
   }
 
   @Post()
