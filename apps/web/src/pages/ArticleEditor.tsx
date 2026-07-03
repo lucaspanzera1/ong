@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import {
   createArticle,
   listArticlesForAdmin,
+  translateArticle,
   updateArticle,
   uploadImage,
 } from '../lib/articles';
@@ -31,6 +32,7 @@ export function ArticleEditor() {
   // Drag and Drop State
   const [isDragging, setIsDragging] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -138,6 +140,25 @@ export function ArticleEditor() {
     );
   }
 
+  async function handleTranslate() {
+    if (!content.trim()) {
+      setError('Escreva o conteúdo em português antes de traduzir.');
+      return;
+    }
+    setIsTranslating(true);
+    setError(null);
+    try {
+      const translation = await translateArticle(title, content);
+      setTitleEn(translation.title);
+      setContentEn(translation.content);
+      setActiveLang('EN');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao traduzir artigo');
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
   const currentTitle = activeLang === 'PT' ? title : titleEn;
   const setCurrentTitle = activeLang === 'PT' ? setTitle : setTitleEn;
   const currentContent = activeLang === 'PT' ? content : contentEn;
@@ -200,24 +221,38 @@ export function ArticleEditor() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-            <div className="flex items-center gap-2">
-              {(['PT', 'EN'] as const).map((lang) => (
-                <button
-                  key={lang}
-                  type="button"
-                  onClick={() => setActiveLang(lang)}
-                  className={`px-4 py-2 font-mono text-[10px] uppercase tracking-widest border transition-colors ${
-                    activeLang === lang
-                      ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
-                      : 'bg-neutral-50 dark:bg-[#1a1a1a] border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300'
-                  }`}
-                >
-                  {lang === 'PT' ? 'Português' : 'English'}
-                  {lang === 'EN' && !titleEn.trim() && !contentEn.trim() && (
-                    <span className="ml-2 opacity-60">(opcional)</span>
-                  )}
-                </button>
-              ))}
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                {(['PT', 'EN'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setActiveLang(lang)}
+                    className={`px-4 py-2 font-mono text-[10px] uppercase tracking-widest border transition-colors ${
+                      activeLang === lang
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                        : 'bg-neutral-50 dark:bg-[#1a1a1a] border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300'
+                    }`}
+                  >
+                    {lang === 'PT' ? 'Português' : 'English'}
+                    {lang === 'EN' && !titleEn.trim() && !contentEn.trim() && (
+                      <span className="ml-2 opacity-60">(opcional)</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleTranslate}
+                disabled={isTranslating || !content.trim()}
+                title="Traduzir automaticamente o título e o conteúdo para o inglês"
+                className="flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest border border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className={`material-symbols-outlined text-[16px] ${isTranslating ? 'animate-spin' : ''}`}>
+                  {isTranslating ? 'progress_activity' : 'translate'}
+                </span>
+                {isTranslating ? 'Traduzindo...' : 'Traduzir para o Inglês'}
+              </button>
             </div>
 
             <div className="space-y-3">
@@ -341,7 +376,7 @@ export function ArticleEditor() {
             <div className="flex justify-end pt-8 border-t border-black/10 dark:border-white/10 transition-colors duration-300">
               <button
                 type="submit"
-                disabled={submitting || isUploadingImage}
+                disabled={submitting || isUploadingImage || isTranslating}
                 className="w-full sm:w-auto px-8 py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium tracking-wide uppercase hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 <span className={`material-symbols-outlined text-xl ${submitting || isUploadingImage ? 'animate-spin' : ''}`}>

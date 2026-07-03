@@ -97,6 +97,28 @@ export async function updateArticle(slug: string, updates: ArticleUpdate): Promi
   return res.json();
 }
 
+export interface ArticleTranslation {
+  title: string;
+  content: string;
+}
+
+export async function translateArticle(
+  title: string,
+  content: string,
+): Promise<ArticleTranslation> {
+  const res = await fetch(`${API_URL}/translate/article`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ title, content }),
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new Error(data?.message ?? 'Falha ao traduzir artigo');
+  }
+  return res.json();
+}
+
 export async function uploadImage(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
