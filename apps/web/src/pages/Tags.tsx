@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { listTags, type Tag } from '../lib/tags';
+import { listTags, tagName, type Tag } from '../lib/tags';
 
 interface TagsProps {
   lang: 'EN' | 'PT';
@@ -52,7 +52,7 @@ export function Tags({ lang }: TagsProps) {
             <span className="material-symbols-outlined text-[20px] text-neutral-400 group-hover:text-blue-500 transition-colors">
               {tag.icon}
             </span>
-            <span className="font-medium pr-1">{tag.name}</span>
+            <span className="font-medium pr-1">{tagName(tag, lang)}</span>
           </div>
         ))}
         {tags.length === 0 && (

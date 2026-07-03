@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { listArticles, type Article } from '../lib/articles';
+import { articleTitle, listArticles, type Article } from '../lib/articles';
+import { listTags, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ArticlesProps {
   lang: 'EN' | 'PT';
@@ -22,10 +23,12 @@ const content = {
 
 export function Articles({ lang }: ArticlesProps) {
   const [articles, setArticles] = useState<Article[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
   const currentContent = content[lang];
 
   useEffect(() => {
     listArticles().then(setArticles).catch(() => {});
+    listTags().then(setTags).catch(() => {});
   }, []);
 
   return (
@@ -53,12 +56,12 @@ export function Articles({ lang }: ArticlesProps) {
           >
             <div className="flex flex-col gap-2 min-w-0">
               <span className="text-lg font-medium text-neutral-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 truncate">
-                {article.title}
+                {articleTitle(article, lang)}
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {article.tags.map(tag => (
                   <span key={tag} className="text-xs px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
-                    {tag}
+                    {translateTagLabel(tags, tag, lang)}
                   </span>
                 ))}
               </div>

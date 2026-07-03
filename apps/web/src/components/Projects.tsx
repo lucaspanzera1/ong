@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import { ExternalLink, FileText, type LucideIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { projectsData } from '../data/projects';
-import { listArticles, articleExcerpt } from '../lib/articles';
+import { listArticles, articleExcerpt, articleTitle, articleBody } from '../lib/articles';
+import { listTags, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ProjectsProps {
   lang: 'EN' | 'PT';
@@ -22,6 +23,11 @@ interface CardItem {
 export function Projects({ lang }: ProjectsProps) {
   const currentContent = projectsData[lang];
   const [articleItems, setArticleItems] = useState<CardItem[]>([]);
+  const [tags, setTags] = useState<Tag[]>([]);
+
+  useEffect(() => {
+    listTags().then(setTags).catch(() => {});
+  }, []);
 
   useEffect(() => {
     listArticles()
@@ -29,17 +35,17 @@ export function Projects({ lang }: ProjectsProps) {
         setArticleItems(
           articles.map(article => ({
             key: `article-${article._id}`,
-            title: article.title,
-            description: articleExcerpt(article.content),
+            title: articleTitle(article, lang),
+            description: articleExcerpt(articleBody(article, lang)),
             category: lang === 'EN' ? 'Article' : 'Artigo',
             icon: FileText,
-            tags: article.tags,
+            tags: article.tags.map(tag => translateTagLabel(tags, tag, lang)),
             link: `/articles/${article.slug}`,
           })),
         ),
       )
       .catch(() => {});
-  }, [lang]);
+  }, [lang, tags]);
 
   const projectItems: CardItem[] = currentContent.projects.map(project => ({
     key: `project-${project.id}`,

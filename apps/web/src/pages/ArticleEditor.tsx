@@ -20,6 +20,9 @@ export function ArticleEditor() {
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [titleEn, setTitleEn] = useState('');
+  const [contentEn, setContentEn] = useState('');
+  const [activeLang, setActiveLang] = useState<'PT' | 'EN'>('PT');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -49,9 +52,9 @@ export function ArticleEditor() {
     if (!textareaRef.current) return;
     const start = textareaRef.current.selectionStart;
     const end = textareaRef.current.selectionEnd;
-    const selectedText = content.substring(start, end);
-    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end);
-    setContent(newText);
+    const selectedText = currentContent.substring(start, end);
+    const newText = currentContent.substring(0, start) + before + selectedText + after + currentContent.substring(end);
+    setCurrentContent(newText);
 
     setTimeout(() => {
       if (textareaRef.current) {
@@ -114,6 +117,8 @@ export function ArticleEditor() {
           if (article) {
             setTitle(article.title);
             setContent(article.content);
+            setTitleEn(article.titleEn ?? '');
+            setContentEn(article.contentEn ?? '');
             setSelectedTags(article.tags);
           } else {
             setError('Artigo não encontrado.');
@@ -133,6 +138,11 @@ export function ArticleEditor() {
     );
   }
 
+  const currentTitle = activeLang === 'PT' ? title : titleEn;
+  const setCurrentTitle = activeLang === 'PT' ? setTitle : setTitleEn;
+  const currentContent = activeLang === 'PT' ? content : contentEn;
+  const setCurrentContent = activeLang === 'PT' ? setContent : setContentEn;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!title.trim() || !content.trim()) {
@@ -146,10 +156,12 @@ export function ArticleEditor() {
         await updateArticle(slug, {
           title: title.trim(),
           content: content.trim(),
+          titleEn: titleEn.trim(),
+          contentEn: contentEn.trim(),
           tags: selectedTags,
         });
       } else {
-        await createArticle(title.trim(), content.trim(), selectedTags);
+        await createArticle(title.trim(), content.trim(), selectedTags, titleEn.trim(), contentEn.trim());
       }
       navigate(ADMIN_PATH);
     } catch (err) {
@@ -188,15 +200,35 @@ export function ArticleEditor() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+            <div className="flex items-center gap-2">
+              {(['PT', 'EN'] as const).map((lang) => (
+                <button
+                  key={lang}
+                  type="button"
+                  onClick={() => setActiveLang(lang)}
+                  className={`px-4 py-2 font-mono text-[10px] uppercase tracking-widest border transition-colors ${
+                    activeLang === lang
+                      ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                      : 'bg-neutral-50 dark:bg-[#1a1a1a] border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300'
+                  }`}
+                >
+                  {lang === 'PT' ? 'Português' : 'English'}
+                  {lang === 'EN' && !titleEn.trim() && !contentEn.trim() && (
+                    <span className="ml-2 opacity-60">(opcional)</span>
+                  )}
+                </button>
+              ))}
+            </div>
+
             <div className="space-y-3">
               <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
-                Título
+                Título {activeLang === 'EN' && '(Inglês)'}
               </label>
               <input
                 type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Ex: Como configurei meu home lab..."
+                value={currentTitle}
+                onChange={(e) => setCurrentTitle(e.target.value)}
+                placeholder={activeLang === 'PT' ? 'Ex: Como configurei meu home lab...' : 'Ex: How I set up my home lab...'}
                 className="w-full px-5 py-4 text-lg bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-neutral-300 text-neutral-900 dark:text-white focus:outline-none transition-colors placeholder:text-neutral-400"
               />
             </div>
@@ -233,7 +265,7 @@ export function ArticleEditor() {
               <div className="space-y-3 flex flex-col h-full">
                 <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 transition-colors duration-300">
                   <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
-                    Conteúdo (Markdown)
+                    Conteúdo (Markdown) {activeLang === 'EN' && '(Inglês)'}
                   </label>
                   <div className="flex flex-wrap items-center gap-1">
                     {toolbarButtons.map((btn, i) => (
@@ -253,13 +285,17 @@ export function ArticleEditor() {
                 <div className="relative w-full flex-1 flex flex-col min-h-[400px]">
                   <textarea
                     ref={textareaRef}
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
+                    value={currentContent}
+                    onChange={(e) => setCurrentContent(e.target.value)}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onPaste={handlePaste}
-                    placeholder={'## Título\n\nEscreva seu artigo em **markdown**...\n\n(Arraste e solte ou cole imagens aqui para fazer upload)'}
+                    placeholder={
+                      activeLang === 'PT'
+                        ? '## Título\n\nEscreva seu artigo em **markdown**...\n\n(Arraste e solte ou cole imagens aqui para fazer upload)'
+                        : '## Title\n\nWrite your article in **markdown**...\n\n(Drag & drop or paste images here to upload)'
+                    }
                     className={`w-full h-full flex-1 px-5 py-5 text-sm font-mono leading-relaxed bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-neutral-300 text-neutral-900 dark:text-neutral-200 focus:outline-none transition-all placeholder:text-neutral-400 resize-none ${
                       isDragging ? 'opacity-50 ring-2 ring-neutral-900 dark:ring-white border-transparent' : ''
                     }`}
@@ -286,8 +322,8 @@ export function ArticleEditor() {
                   </label>
                 </div>
                 <div className="flex-1 min-h-[400px] overflow-y-auto px-6 py-6 bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 prose prose-neutral dark:prose-invert max-w-none transition-colors">
-                  {content.trim() ? (
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+                  {currentContent.trim() ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentContent}</ReactMarkdown>
                   ) : (
                     <p className="text-neutral-400 text-sm not-prose font-mono">A pré-visualização aparecerá aqui...</p>
                   )}

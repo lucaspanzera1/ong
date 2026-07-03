@@ -5,8 +5,10 @@ export type ArticleStatus = 'published' | 'archived';
 export interface Article {
   _id: string;
   title: string;
+  titleEn?: string;
   slug: string;
   content: string;
+  contentEn?: string;
   tags: string[];
   status: ArticleStatus;
   createdAt: string;
@@ -16,8 +18,18 @@ export interface Article {
 export interface ArticleUpdate {
   title?: string;
   content?: string;
+  titleEn?: string;
+  contentEn?: string;
   tags?: string[];
   status?: ArticleStatus;
+}
+
+export function articleTitle(article: Article, lang: 'EN' | 'PT'): string {
+  return lang === 'EN' && article.titleEn ? article.titleEn : article.title;
+}
+
+export function articleBody(article: Article, lang: 'EN' | 'PT'): string {
+  return lang === 'EN' && article.contentEn ? article.contentEn : article.content;
 }
 
 export async function listArticles(): Promise<Article[]> {
@@ -51,12 +63,18 @@ export function articleExcerpt(content: string, maxLength = 160): string {
   return plain.length <= maxLength ? plain : `${plain.slice(0, maxLength).trimEnd()}...`;
 }
 
-export async function createArticle(title: string, content: string, tags: string[]): Promise<Article> {
+export async function createArticle(
+  title: string,
+  content: string,
+  tags: string[],
+  titleEn?: string,
+  contentEn?: string,
+): Promise<Article> {
   const res = await fetch(`${API_URL}/articles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, content, tags }),
+    body: JSON.stringify({ title, content, tags, titleEn, contentEn }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);

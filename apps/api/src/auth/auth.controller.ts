@@ -1,4 +1,13 @@
-import { Controller, Get, HttpCode, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  Query,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Response } from 'express';
 import { MailerService } from './mailer.service';
@@ -17,7 +26,10 @@ export class AuthController {
   @Post('login')
   @HttpCode(200)
   async login(): Promise<{ message: string }> {
-    const allowedEmail = this.config.getOrThrow<string>('AUTH_ALLOWED_EMAIL').trim().toLowerCase();
+    const allowedEmail = this.config
+      .getOrThrow<string>('AUTH_ALLOWED_EMAIL')
+      .trim()
+      .toLowerCase();
 
     const token = await this.tokenService.createLoginToken(allowedEmail);
     const apiPublicUrl = this.config.getOrThrow<string>('API_PUBLIC_URL');
@@ -28,7 +40,10 @@ export class AuthController {
   }
 
   @Get('verify')
-  async verify(@Query('token') token: string, @Res() res: Response): Promise<void> {
+  async verify(
+    @Query('token') token: string,
+    @Res() res: Response,
+  ): Promise<void> {
     const email = await this.tokenService.verifyLoginToken(token);
     const sessionToken = await this.tokenService.createSessionToken(email);
 

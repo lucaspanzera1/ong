@@ -6,7 +6,10 @@ import { TagsController } from './tags.controller';
 import { TagsService } from './tags.service';
 
 @Module({
-  imports: [MongooseModule.forFeature([{ name: Tag.name, schema: TagSchema }]), AuthModule],
+  imports: [
+    MongooseModule.forFeature([{ name: Tag.name, schema: TagSchema }]),
+    AuthModule,
+  ],
   controllers: [TagsController],
   providers: [TagsService],
 })

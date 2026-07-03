@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { createTag, listTags, type Tag } from '../lib/tags';
+import { createTag, listTags, updateTag, type Tag } from '../lib/tags';
 import { IconPicker } from './IconPicker';
 
 export function TagManager() {
   const [tags, setTags] = useState<Tag[]>([]);
   const [name, setName] = useState('');
+  const [nameEn, setNameEn] = useState('');
   const [icon, setIcon] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -23,15 +24,27 @@ export function TagManager() {
     setSubmitting(true);
     setError(null);
     try {
-      const tag = await createTag(name.trim(), icon);
+      const tag = await createTag(name.trim(), icon, nameEn.trim() || undefined);
       setTags(prev => [...prev, tag].sort((a, b) => a.name.localeCompare(b.name)));
       setName('');
+      setNameEn('');
       setIcon('');
       setIconPickerKey(k => k + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Falha ao criar tag');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function handleSaveNameEn(tag: Tag, value: string) {
+    const trimmed = value.trim();
+    if (trimmed === (tag.nameEn ?? '')) return;
+    try {
+      const updated = await updateTag(tag._id, trimmed);
+      setTags(prev => prev.map(t => (t._id === tag._id ? updated : t)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao atualizar tradução da tag');
     }
   }
 
@@ -73,6 +86,17 @@ export function TagManager() {
             </div>
 
             <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest pl-1">Nome (Inglês) · opcional</label>
+              <input
+                type="text"
+                value={nameEn}
+                onChange={e => setNameEn(e.target.value)}
+                placeholder="Ex: UX Design, React..."
+                className="w-full px-4 py-3 text-sm rounded-xl border border-neutral-200/80 dark:border-neutral-800 bg-neutral-50/50 dark:bg-black/40 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:ring-blue-400/20 dark:focus:border-blue-400 transition-all placeholder:text-neutral-400"
+              />
+            </div>
+
+            <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-widest pl-1">Ícone</label>
               <IconPicker key={iconPickerKey} value={icon} onChange={setIcon} />
             </div>
@@ -106,12 +130,21 @@ export function TagManager() {
             {tags.map(tag => (
               <div
                 key={tag._id}
-                className="group flex items-center gap-2.5 px-4 py-2 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 text-sm text-neutral-700 dark:text-neutral-300 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 hover:text-blue-700 dark:hover:text-blue-300 transition-all cursor-default shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-300"
+                className="group flex flex-col gap-2 px-4 py-2.5 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 text-sm text-neutral-700 dark:text-neutral-300 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 hover:text-blue-700 dark:hover:text-blue-300 transition-all shadow-sm hover:shadow-md duration-300"
               >
-                <span className="material-symbols-outlined text-[20px] text-neutral-400 group-hover:text-blue-500 transition-colors">
-                  {tag.icon}
-                </span>
-                <span className="font-medium pr-1">{tag.name}</span>
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-[20px] text-neutral-400 group-hover:text-blue-500 transition-colors">
+                    {tag.icon}
+                  </span>
+                  <span className="font-medium pr-1">{tag.name}</span>
+                </div>
+                <input
+                  type="text"
+                  defaultValue={tag.nameEn ?? ''}
+                  placeholder="Nome em inglês"
+                  onBlur={e => handleSaveNameEn(tag, e.target.value)}
+                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-neutral-200/80 dark:border-neutral-700/50 bg-neutral-50/50 dark:bg-black/30 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:ring-blue-400/20 dark:focus:border-blue-400 transition-all placeholder:text-neutral-400"
+                />
               </div>
             ))}
             {tags.length === 0 && (

@@ -10,11 +10,17 @@ export class Article {
   @Prop({ required: true, trim: true })
   title: string;
 
+  @Prop({ trim: true })
+  titleEn?: string;
+
   @Prop({ required: true, trim: true, unique: true })
   slug: string;
 
   @Prop({ required: true })
   content: string;
+
+  @Prop()
+  contentEn?: string;
 
   @Prop({ type: [String], default: [] })
   tags: string[];

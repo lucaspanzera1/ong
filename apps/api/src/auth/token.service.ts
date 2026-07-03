@@ -24,12 +24,19 @@ export class TokenService {
       );
     }
     this.key = key;
-    this.magicLinkTtlSeconds = Number(this.config.getOrThrow<string>('AUTH_MAGIC_LINK_TTL_SECONDS'));
-    this.sessionTtlSeconds = Number(this.config.getOrThrow<string>('AUTH_SESSION_TTL_SECONDS'));
+    this.magicLinkTtlSeconds = Number(
+      this.config.getOrThrow<string>('AUTH_MAGIC_LINK_TTL_SECONDS'),
+    );
+    this.sessionTtlSeconds = Number(
+      this.config.getOrThrow<string>('AUTH_SESSION_TTL_SECONDS'),
+    );
   }
 
   async createLoginToken(email: string): Promise<string> {
-    return this.encrypt({ sub: email, purpose: 'login' }, this.magicLinkTtlSeconds);
+    return this.encrypt(
+      { sub: email, purpose: 'login' },
+      this.magicLinkTtlSeconds,
+    );
   }
 
   async verifyLoginToken(token: string): Promise<string> {
@@ -37,7 +44,10 @@ export class TokenService {
   }
 
   async createSessionToken(email: string): Promise<string> {
-    return this.encrypt({ sub: email, purpose: 'session' }, this.sessionTtlSeconds);
+    return this.encrypt(
+      { sub: email, purpose: 'session' },
+      this.sessionTtlSeconds,
+    );
   }
 
   async verifySessionToken(token: string): Promise<string> {
@@ -48,7 +58,10 @@ export class TokenService {
     return this.sessionTtlSeconds * 1000;
   }
 
-  private async encrypt(payload: TokenPayload, ttlSeconds: number): Promise<string> {
+  private async encrypt(
+    payload: TokenPayload,
+    ttlSeconds: number,
+  ): Promise<string> {
     return new EncryptJWT({ ...payload })
       .setProtectedHeader({ alg: 'dir', enc: 'A256GCM' })
       .setIssuedAt()
@@ -56,10 +69,16 @@ export class TokenService {
       .encrypt(this.key);
   }
 
-  private async decrypt(token: string, expectedPurpose: TokenPurpose): Promise<string> {
+  private async decrypt(
+    token: string,
+    expectedPurpose: TokenPurpose,
+  ): Promise<string> {
     try {
       const { payload } = await jwtDecrypt<TokenPayload>(token, this.key);
-      if (payload.purpose !== expectedPurpose || typeof payload.sub !== 'string') {
+      if (
+        payload.purpose !== expectedPurpose ||
+        typeof payload.sub !== 'string'
+      ) {
         throw new Error('unexpected token purpose');
       }
       return payload.sub;

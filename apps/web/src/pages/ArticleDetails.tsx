@@ -4,7 +4,8 @@ import { ArrowLeft, FileText } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { getArticle, articleExcerpt, type Article } from '../lib/articles';
+import { getArticle, articleExcerpt, articleTitle, articleBody, type Article } from '../lib/articles';
+import { listTags, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ArticleDetailsProps {
   lang: 'EN' | 'PT';
@@ -17,6 +18,7 @@ function formatDate(iso: string, lang: 'EN' | 'PT'): string {
 export function ArticleDetails({ lang }: ArticleDetailsProps) {
   const { slug } = useParams();
   const [article, setArticle] = useState<Article | null>(null);
+  const [tags, setTags] = useState<Tag[]>([]);
   const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
@@ -24,6 +26,7 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
     getArticle(slug)
       .then(setArticle)
       .catch(() => setNotFound(true));
+    listTags().then(setTags).catch(() => {});
   }, [slug]);
 
   if (notFound) {
@@ -66,17 +69,17 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
           </span>
         </div>
         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-6">
-          {article.title}
+          {articleTitle(article, lang)}
         </h1>
         <p className="text-xl text-neutral-600 dark:text-neutral-400 leading-relaxed mb-8">
-          {articleExcerpt(article.content, 220)}
+          {articleExcerpt(articleBody(article, lang), 220)}
         </p>
 
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex flex-wrap gap-2">
             {article.tags.map(tag => (
               <span key={tag} className="px-3 py-1.5 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 font-mono text-xs uppercase tracking-wider">
-                {tag}
+                {translateTagLabel(tags, tag, lang)}
               </span>
             ))}
           </div>
@@ -90,7 +93,7 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
       </header>
 
       <div className="border-t border-black/10 dark:border-white/10 py-12 prose prose-neutral dark:prose-invert max-w-none">
-        <ReactMarkdown remarkPlugins={[remarkGfm]}>{article.content}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{articleBody(article, lang)}</ReactMarkdown>
       </div>
     </motion.article>
   );

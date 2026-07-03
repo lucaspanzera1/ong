@@ -8,6 +8,9 @@ export class Tag {
   @Prop({ required: true, trim: true, unique: true })
   name: string;
 
+  @Prop({ trim: true })
+  nameEn?: string;
+
   @Prop({ required: true, trim: true })
   icon: string;
 }

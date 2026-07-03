@@ -22,7 +22,8 @@ export class MailerService {
 
   async sendMagicLink(to: string, link: string): Promise<void> {
     const ttlMinutes = Math.round(
-      Number(this.config.getOrThrow<string>('AUTH_MAGIC_LINK_TTL_SECONDS')) / 60,
+      Number(this.config.getOrThrow<string>('AUTH_MAGIC_LINK_TTL_SECONDS')) /
+        60,
     );
 
     await this.transporter.sendMail({
