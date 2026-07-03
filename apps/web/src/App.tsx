@@ -3,22 +3,28 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
+import { RouteTracker } from './components/RouteTracker';
+import { CookieConsentBanner } from './components/CookieConsentBanner';
 import { ProjectDetails } from './pages/ProjectDetails';
 import { Admin } from './pages/Admin';
 import { Tags } from './pages/Tags';
 import { Articles } from './pages/Articles';
 import { ArticleDetails } from './pages/ArticleDetails';
 import { ArticleEditor } from './pages/ArticleEditor';
+import { Privacy } from './pages/Privacy';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
+import { hasDecided } from './lib/consent';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
 function App() {
   const [lang, setLang] = useState<'EN' | 'PT'>('EN');
+  const [cookieBannerOpen, setCookieBannerOpen] = useState(!hasDecided());
 
   return (
     <Router>
+      <RouteTracker adminPath={ADMIN_PATH} />
       <div className="min-h-[100dvh] selection:bg-neutral-200 flex flex-col">
         <Header lang={lang} setLang={setLang} />
         <main className="flex-1 flex flex-col">
@@ -28,6 +34,7 @@ function App() {
             <Route path="/tags" element={<Tags lang={lang} />} />
             <Route path="/articles" element={<Articles lang={lang} />} />
             <Route path="/articles/:slug" element={<ArticleDetails lang={lang} />} />
+            <Route path="/privacy" element={<Privacy lang={lang} />} />
             <Route
               path={ADMIN_PATH}
               element={
@@ -55,8 +62,13 @@ function App() {
             <Route path="*" element={<NotFound lang={lang} />} />
           </Routes>
         </main>
-        <Footer />
+        <Footer lang={lang} onOpenCookiePreferences={() => setCookieBannerOpen(true)} />
       </div>
+      <CookieConsentBanner
+        lang={lang}
+        open={cookieBannerOpen}
+        onClose={() => setCookieBannerOpen(false)}
+      />
     </Router>
   );
 }

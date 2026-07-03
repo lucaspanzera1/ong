@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getSession, logout } from '../lib/auth';
 import { TagManager } from '../components/TagManager';
 import { ArticleManager } from '../components/ArticleManager';
+
+const AnalyticsDashboard = lazy(() =>
+  import('../components/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })),
+);
 
 export function Admin() {
   const [email, setEmail] = useState<string | null>(null);
@@ -48,6 +52,9 @@ export function Admin() {
       </header>
 
       <main className="grid grid-cols-1 gap-8 transition-all duration-500">
+        <Suspense fallback={null}>
+          <AnalyticsDashboard />
+        </Suspense>
         <TagManager />
         <ArticleManager />
       </main>

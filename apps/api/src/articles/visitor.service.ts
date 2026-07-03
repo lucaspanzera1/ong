@@ -1,7 +1,8 @@
-import { createHash, randomUUID } from 'node:crypto';
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import type { Request, Response } from 'express';
+import { hashWithSecret, normalizeIp } from '../common/hash.util';
 
 export interface VisitorIdentity {
   voterHash: string;
@@ -32,17 +33,8 @@ export class VisitorService {
       });
     }
 
-    const voterHash = this.hash(visitorId as string, secret);
-    const ipHash = this.hash(this.normalizeIp(req.ip), secret);
+    const voterHash = hashWithSecret(visitorId as string, secret);
+    const ipHash = hashWithSecret(normalizeIp(req.ip), secret);
     return { voterHash, ipHash };
-  }
-
-  private hash(value: string, secret: string): string {
-    return createHash('sha256').update(`${secret}:${value}`).digest('hex');
-  }
-
-  private normalizeIp(ip: string | undefined): string {
-    if (!ip) return 'unknown';
-    return ip.startsWith('::ffff:') ? ip.slice(7) : ip;
   }
 }
