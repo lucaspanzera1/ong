@@ -10,7 +10,7 @@
 
 @layer base {
   body {
-    @apply bg-[#FAFAFA] text-neutral-900 antialiased selection:bg-neutral-900 selection:text-white transition-colors duration-300;
+    @apply bg-[#FAFAFA] text-neutral-900 antialiased selection:bg-neutral-900 selection:text-white;
   }
 
   .dark body {

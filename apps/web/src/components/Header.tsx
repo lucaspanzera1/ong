@@ -20,6 +20,13 @@ export function Header({ lang, setLang }: HeaderProps) {
       setIsDark(false);
       document.documentElement.classList.remove('dark');
     }
+
+    // Re-enable transitions on body after initial render to avoid flash of white (FOUC)
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        document.body.classList.add('transition-colors', 'duration-300');
+      }, 0);
+    });
   }, []);
 
   const toggleTheme = () => {

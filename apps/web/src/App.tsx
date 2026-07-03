@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
+import { ScrollToTop } from './components/ScrollToTop';
 import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
 import { RouteTracker } from './components/RouteTracker';
@@ -24,6 +25,7 @@ function App() {
 
   return (
     <Router>
+      <ScrollToTop />
       <RouteTracker adminPath={ADMIN_PATH} />
       <div className="min-h-[100dvh] selection:bg-neutral-200 flex flex-col">
         <Header lang={lang} setLang={setLang} />
