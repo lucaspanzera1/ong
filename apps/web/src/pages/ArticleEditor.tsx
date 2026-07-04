@@ -10,6 +10,7 @@ import {
   uploadImage,
 } from '../lib/articles';
 import { listTags, type Tag } from '../lib/tags';
+import { clearDraft, isDraftEmpty, loadDraft, saveDraft, type ArticleDraft } from '../lib/draft';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
@@ -33,6 +34,10 @@ export function ArticleEditor() {
   const [isDragging, setIsDragging] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
+
+  // Draft State
+  const [pendingDraft, setPendingDraft] = useState<ArticleDraft | null>(null);
+  const [draftDecided, setDraftDecided] = useState(isEditing);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -131,8 +136,46 @@ export function ArticleEditor() {
           setError('Falha ao carregar o artigo.');
           setLoading(false);
         });
+    } else {
+      const draft = loadDraft();
+      if (draft && !isDraftEmpty(draft)) {
+        setPendingDraft(draft);
+      } else {
+        setDraftDecided(true);
+      }
     }
   }, [isEditing, slug]);
+
+  function resumeDraft() {
+    if (!pendingDraft) return;
+    setTitle(pendingDraft.title);
+    setContent(pendingDraft.content);
+    setTitleEn(pendingDraft.titleEn);
+    setContentEn(pendingDraft.contentEn);
+    setSelectedTags(pendingDraft.tags);
+    setPendingDraft(null);
+    setDraftDecided(true);
+  }
+
+  function discardDraft() {
+    clearDraft();
+    setPendingDraft(null);
+    setDraftDecided(true);
+  }
+
+  // Autosave draft while writing a new (unpublished) article.
+  useEffect(() => {
+    if (isEditing || !draftDecided) return;
+    const current = { title, content, titleEn, contentEn, tags: selectedTags };
+    const handle = setTimeout(() => {
+      if (isDraftEmpty(current)) {
+        clearDraft();
+      } else {
+        saveDraft(current);
+      }
+    }, 800);
+    return () => clearTimeout(handle);
+  }, [isEditing, draftDecided, title, content, titleEn, contentEn, selectedTags]);
 
   function toggleTag(name: string) {
     setSelectedTags((prev) =>
@@ -183,6 +226,7 @@ export function ArticleEditor() {
         });
       } else {
         await createArticle(title.trim(), content.trim(), selectedTags, titleEn.trim(), contentEn.trim());
+        clearDraft();
       }
       navigate(ADMIN_PATH);
     } catch (err) {
@@ -193,6 +237,40 @@ export function ArticleEditor() {
 
   return (
     <div className="py-24 px-6 w-full max-w-[95%] xl:max-w-[1400px] mx-auto min-h-[80vh] flex flex-col gap-10 animate-in fade-in duration-500">
+      {pendingDraft && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm px-6">
+          <div className="w-full max-w-md bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 p-8 shadow-xl">
+            <span className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+              Rascunho encontrado
+            </span>
+            <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mt-2 mb-3">
+              Você tem um rascunho não publicado
+            </h2>
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
+              {pendingDraft.title.trim() || 'Sem título'}
+            </p>
+            <p className="text-xs font-mono text-neutral-400 dark:text-neutral-500 mb-6">
+              Salvo em {new Date(pendingDraft.savedAt).toLocaleString('pt-BR')}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={resumeDraft}
+                className="flex-1 px-4 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium tracking-wide uppercase hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors"
+              >
+                Continuar rascunho
+              </button>
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm font-medium tracking-wide uppercase hover:border-neutral-900 dark:hover:border-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
+              >
+                Começar do zero
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <header className="mb-8 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
         <div className="flex items-center gap-4 mb-6">
           <Link
