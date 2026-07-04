@@ -51,7 +51,6 @@ export function Header({ lang, setLang }: HeaderProps) {
         <a href="/" className="text-xl font-medium tracking-tight hover:opacity-70 transition-opacity text-neutral-900 dark:text-white">
           panzera.
         </a>
-        
         <div className="flex items-center gap-4">
           <button
             onClick={() => setLang(lang === 'EN' ? 'PT' : 'EN')}

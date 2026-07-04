@@ -12,6 +12,7 @@ import { Articles } from './pages/Articles';
 import { ArticleDetails } from './pages/ArticleDetails';
 import { ArticleEditor } from './pages/ArticleEditor';
 import { Privacy } from './pages/Privacy';
+import { About } from './pages/About';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 import { hasDecided } from './lib/consent';
@@ -43,6 +44,7 @@ function App() {
         <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Projects lang={lang} />} />
+            <Route path="/about" element={<About lang={lang} />} />
             <Route path="/tags" element={<Tags lang={lang} />} />
             <Route path="/articles" element={<Articles lang={lang} />} />
             <Route path="/articles/:slug" element={<ArticleDetails lang={lang} />} />

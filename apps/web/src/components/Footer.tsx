@@ -54,7 +54,7 @@ function PixelCookieIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function PixelCodeIcon(props: React.SVGProps<SVGSVGElement>) {
+export function PixelCodeIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -80,7 +80,7 @@ function PixelCodeIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function PixelLinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
+export function PixelLinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -100,6 +100,29 @@ function PixelLinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
       <rect x="6" y="7" width="2" height="5" />
       <rect x="8" y="7" width="2" height="1" />
       <rect x="10" y="8" width="2" height="4" />
+    </svg>
+  );
+}
+
+function PixelHandIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 16 16"
+      fill="currentColor"
+      shapeRendering="crispEdges"
+    >
+      {/* Middle finger */}
+      <rect x="7" y="1" width="2" height="7" />
+      {/* Index finger */}
+      <rect x="4" y="3" width="2" height="5" />
+      {/* Ring/Pinky finger */}
+      <rect x="10" y="3" width="2" height="5" />
+      {/* Palm */}
+      <rect x="4" y="8" width="8" height="6" />
+      {/* Thumb */}
+      <rect x="1" y="7" width="3" height="3" />
     </svg>
   );
 }
@@ -186,6 +209,9 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
               )}
             </AnimatePresence>
           </div>
+          <Link to="/about" aria-label="About" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+            <PixelHandIcon className="w-5 h-5" />
+          </Link>
           <a href="https://github.com/lucaspanzera1" aria-label="GitHub" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
             <PixelCodeIcon className="w-5 h-5" />
           </a>
