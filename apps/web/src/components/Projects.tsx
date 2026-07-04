@@ -47,17 +47,7 @@ export function Projects({ lang }: ProjectsProps) {
       .catch(() => {});
   }, [lang, tags]);
 
-  const projectItems: CardItem[] = currentContent.projects.map(project => ({
-    key: `project-${project.id}`,
-    title: project.title,
-    description: project.description,
-    category: project.category,
-    icon: project.icon,
-    tags: project.tags,
-    link: project.link,
-  }));
-
-  const items = [...projectItems, ...articleItems];
+  const items = articleItems;
 
   return (
     <section id="projects" className="py-24 px-6 max-w-5xl mx-auto">
