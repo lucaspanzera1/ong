@@ -115,9 +115,11 @@ export function Projects({ lang }: ProjectsProps) {
 
   const renderCard = (item: CardItem, index: number, compact: boolean = false) => (
     <motion.div
+      layout
       key={item.key}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20, transition: { delay: 0, duration: 0.2 } }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.5, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
     >
@@ -167,14 +169,15 @@ export function Projects({ lang }: ProjectsProps) {
   );
 
   return (
-    <section id="projects" className="py-24 px-6 max-w-5xl mx-auto">
-      {/* Highlights Section */}
-      <div className="mb-16 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
-        <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2 transition-colors duration-300">{currentContent.sectionTitle}</h2>
-        <p className="text-neutral-500 dark:text-neutral-400 font-mono text-sm transition-colors duration-300">{currentContent.sectionSubtitle}</p>
-      </div>
+    <section id="projects" className="w-full">
+      <div className="max-w-5xl mx-auto px-6 min-h-[100dvh] flex flex-col justify-start py-24">
+        {/* Highlights Section */}
+        <div className="mb-16 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
+          <h2 className="text-3xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2 transition-colors duration-300">{currentContent.sectionTitle}</h2>
+          <p className="text-neutral-500 dark:text-neutral-400 font-mono text-sm transition-colors duration-300">{currentContent.sectionSubtitle}</p>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-32">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {isLoading ? (
           [1, 2, 3, 4].map((i) => (
             <div key={i} className="flex flex-col justify-between h-full p-6 bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 animate-pulse min-h-[250px] transition-colors duration-300">
@@ -200,8 +203,11 @@ export function Projects({ lang }: ProjectsProps) {
         )}
       </div>
 
+      </div>
+
       {/* Filterable Section */}
-      <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
+      <div className="max-w-5xl mx-auto px-6 py-24">
+        <div className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
         <div>
           <h3 className="text-2xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-2 transition-colors duration-300">{currentContent.allProjectsTitle}</h3>
         </div>
@@ -318,14 +324,23 @@ export function Projects({ lang }: ProjectsProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {!isLoading && filteredItems.length === 0 && (
-          <div className="col-span-full py-12 text-center text-neutral-500 dark:text-neutral-400 font-mono text-sm">
+          <motion.div
+            layout
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="col-span-full py-12 text-center text-neutral-500 dark:text-neutral-400 font-mono text-sm"
+          >
             {currentContent.noResults}
-          </div>
+          </motion.div>
         )}
         
-        {!isLoading && filteredItems.map((item, index) => renderCard(item, index, true))}
+        <AnimatePresence mode="popLayout">
+          {!isLoading && filteredItems.map((item, index) => renderCard(item, index, true))}
+        </AnimatePresence>
+      </motion.div>
       </div>
     </section>
   );
