@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:prod": "tsc -b && vite build --mode prod",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:prod": "vite preview --mode prod"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.20",

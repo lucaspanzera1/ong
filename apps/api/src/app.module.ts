@@ -16,7 +16,13 @@ import { AnalyticsModule } from './analytics/analytics.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: join(__dirname, '../../../.env'),
+      envFilePath:
+        process.env.NODE_ENV === 'production'
+          ? [
+              join(__dirname, '../../../.env.prod'),
+              join(__dirname, '../../../.env'),
+            ]
+          : join(__dirname, '../../../.env'),
     }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
