@@ -16,12 +16,21 @@ export interface Article {
   upvotes: number;
   downvotes: number;
   views: number;
+  relatedArticles: string[];
+}
+
+export interface RelatedArticleSummary {
+  _id: string;
+  title: string;
+  titleEn?: string;
+  slug: string;
 }
 
 export type UserVote = 1 | -1 | null;
 
-export interface ArticleWithVote extends Article {
+export interface ArticleWithVote extends Omit<Article, 'relatedArticles'> {
   userVote: UserVote;
+  relatedArticles: RelatedArticleSummary[];
 }
 
 export interface ArticleUpdate {
@@ -31,13 +40,14 @@ export interface ArticleUpdate {
   contentEn?: string;
   tags?: string[];
   status?: ArticleStatus;
+  relatedArticles?: string[];
 }
 
-export function articleTitle(article: Article, lang: 'EN' | 'PT'): string {
+export function articleTitle(article: Pick<Article, 'title' | 'titleEn'>, lang: 'EN' | 'PT'): string {
   return lang === 'EN' && article.titleEn ? article.titleEn : article.title;
 }
 
-export function articleBody(article: Article, lang: 'EN' | 'PT'): string {
+export function articleBody(article: Pick<Article, 'content' | 'contentEn'>, lang: 'EN' | 'PT'): string {
   return lang === 'EN' && article.contentEn ? article.contentEn : article.content;
 }
 
@@ -93,6 +103,7 @@ export async function createArticle(
   title: string,
   content: string,
   tags: string[],
+  relatedArticles: string[] = [],
   titleEn?: string,
   contentEn?: string,
 ): Promise<Article> {
@@ -100,7 +111,7 @@ export async function createArticle(
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, content, tags, titleEn, contentEn }),
+    body: JSON.stringify({ title, content, tags, relatedArticles, titleEn, contentEn }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);

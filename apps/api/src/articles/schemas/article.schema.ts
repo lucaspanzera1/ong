@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 export type ArticleStatus = 'published' | 'archived';
 
@@ -36,6 +36,9 @@ export class Article {
 
   @Prop({ type: Number, default: 0 })
   views: number;
+
+  @Prop({ type: [Types.ObjectId], ref: 'Article', default: [] })
+  relatedArticles: Types.ObjectId[];
 }
 
 export const ArticleSchema = SchemaFactory.createForClass(Article);

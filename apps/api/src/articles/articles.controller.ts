@@ -52,7 +52,29 @@ export class ArticlesController {
       voterHash,
       ipHash,
     );
-    return { ...article.toObject(), userVote };
+    const plain = article.toObject();
+    const relatedArticles = (
+      (plain.relatedArticles ?? []) as unknown as Array<{
+        _id: unknown;
+        title: string;
+        titleEn?: string;
+        slug: string;
+        status: ArticleStatus;
+      } | null>
+    )
+      .filter(
+        (related): related is NonNullable<typeof related> =>
+          !!related && related.status === 'published',
+      )
+      .map(({ _id, title, titleEn, slug: relatedSlug }) => ({
+        _id,
+        title,
+        titleEn,
+        slug: relatedSlug,
+      }));
+    return { ...plain, relatedArticles, userVote } as unknown as Article & {
+      userVote: ArticleWithVote['userVote'];
+    };
   }
 
   @Post(':slug/vote')
@@ -79,12 +101,16 @@ export class ArticlesController {
       tags?: string[];
       titleEn?: string;
       contentEn?: string;
+      relatedArticles?: string[];
     },
   ): Promise<Article> {
     const title = body.title?.trim();
     const content = body.content?.trim();
     const tags = Array.isArray(body.tags)
       ? body.tags.filter((t) => typeof t === 'string' && t.trim())
+      : [];
+    const relatedArticles = Array.isArray(body.relatedArticles)
+      ? body.relatedArticles.filter((id) => typeof id === 'string' && id.trim())
       : [];
     if (!title || !content) {
       throw new BadRequestException('title and content are required');
@@ -95,6 +121,7 @@ export class ArticlesController {
       tags,
       titleEn: body.titleEn?.trim(),
       contentEn: body.contentEn?.trim(),
+      relatedArticles,
     });
   }
 
@@ -110,6 +137,7 @@ export class ArticlesController {
       contentEn?: string;
       tags?: string[];
       status?: string;
+      relatedArticles?: string[];
     },
   ): Promise<Article> {
     const updates: {
@@ -119,6 +147,7 @@ export class ArticlesController {
       contentEn?: string;
       tags?: string[];
       status?: ArticleStatus;
+      relatedArticles?: string[];
     } = {};
 
     if (body.title !== undefined) {
@@ -149,6 +178,13 @@ export class ArticlesController {
         );
       }
       updates.status = body.status as ArticleStatus;
+    }
+    if (body.relatedArticles !== undefined) {
+      if (!Array.isArray(body.relatedArticles))
+        throw new BadRequestException('relatedArticles must be an array');
+      updates.relatedArticles = body.relatedArticles.filter(
+        (id) => typeof id === 'string' && id.trim(),
+      );
     }
 
     return this.articlesService.update(slug, updates);

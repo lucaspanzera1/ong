@@ -3,11 +3,13 @@ import { useNavigate, useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
+  articleTitle,
   createArticle,
   listArticlesForAdmin,
   translateArticle,
   updateArticle,
   uploadImage,
+  type Article,
 } from '../lib/articles';
 import { buildTagTree, flattenTagTree, listTags, type Tag } from '../lib/tags';
 import { clearDraft, draftMatches, isDraftEmpty, loadDraft, saveDraft, type ArticleDraft } from '../lib/draft';
@@ -31,6 +33,9 @@ export function ArticleEditor() {
   const [contentEn, setContentEn] = useState('');
   const [activeLang, setActiveLang] = useState<'PT' | 'EN'>('PT');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [allArticles, setAllArticles] = useState<Article[]>([]);
+  const [selectedRelated, setSelectedRelated] = useState<string[]>([]);
+  const [relatedFilter, setRelatedFilter] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(isEditing);
@@ -123,9 +128,10 @@ export function ArticleEditor() {
 
   useEffect(() => {
     listTags().then(setAvailableTags).catch(() => {});
-    if (isEditing && slug) {
-      listArticlesForAdmin()
-        .then((articles) => {
+    listArticlesForAdmin()
+      .then((articles) => {
+        setAllArticles(articles);
+        if (isEditing && slug) {
           const article = articles.find((a) => a.slug === slug);
           if (article) {
             const original = {
@@ -134,6 +140,7 @@ export function ArticleEditor() {
               titleEn: article.titleEn ?? '',
               contentEn: article.contentEn ?? '',
               tags: article.tags,
+              relatedArticles: article.relatedArticles,
             };
             originalRef.current = original;
             setTitle(original.title);
@@ -141,6 +148,7 @@ export function ArticleEditor() {
             setTitleEn(original.titleEn);
             setContentEn(original.contentEn);
             setSelectedTags(original.tags);
+            setSelectedRelated(original.relatedArticles);
 
             const draft = loadDraft(slug);
             if (draft && !isDraftEmpty(draft) && !draftMatches(draft, original)) {
@@ -153,21 +161,21 @@ export function ArticleEditor() {
             setError('Artigo não encontrado.');
             setDraftDecided(true);
           }
-          setLoading(false);
-        })
-        .catch(() => {
-          setError('Falha ao carregar o artigo.');
-          setLoading(false);
-          setDraftDecided(true);
-        });
-    } else {
-      const draft = loadDraft('new');
-      if (draft && !isDraftEmpty(draft)) {
-        setPendingDraft(draft);
-      } else {
+        } else {
+          const draft = loadDraft('new');
+          if (draft && !isDraftEmpty(draft)) {
+            setPendingDraft(draft);
+          } else {
+            setDraftDecided(true);
+          }
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        if (isEditing) setError('Falha ao carregar o artigo.');
+        setLoading(false);
         setDraftDecided(true);
-      }
-    }
+      });
   }, [isEditing, slug]);
 
   function resumeDraft() {
@@ -177,6 +185,7 @@ export function ArticleEditor() {
     setTitleEn(pendingDraft.titleEn);
     setContentEn(pendingDraft.contentEn);
     setSelectedTags(pendingDraft.tags);
+    setSelectedRelated(pendingDraft.relatedArticles);
     setPendingDraft(null);
     setDraftDecided(true);
   }
@@ -190,7 +199,14 @@ export function ArticleEditor() {
   // Autosave a draft while writing a new article or editing an existing one.
   useEffect(() => {
     if (!draftDecided) return;
-    const current = { title, content, titleEn, contentEn, tags: selectedTags };
+    const current = {
+      title,
+      content,
+      titleEn,
+      contentEn,
+      tags: selectedTags,
+      relatedArticles: selectedRelated,
+    };
     const handle = setTimeout(() => {
       if (isDraftEmpty(current) || draftMatches(current, originalRef.current)) {
         clearDraft(draftId);
@@ -199,11 +215,17 @@ export function ArticleEditor() {
       }
     }, 800);
     return () => clearTimeout(handle);
-  }, [draftDecided, draftId, title, content, titleEn, contentEn, selectedTags]);
+  }, [draftDecided, draftId, title, content, titleEn, contentEn, selectedTags, selectedRelated]);
 
   function toggleTag(name: string) {
     setSelectedTags((prev) =>
       prev.includes(name) ? prev.filter((t) => t !== name) : [...prev, name]
+    );
+  }
+
+  function toggleRelated(id: string) {
+    setSelectedRelated((prev) =>
+      prev.includes(id) ? prev.filter((r) => r !== id) : [...prev, id]
     );
   }
 
@@ -247,10 +269,18 @@ export function ArticleEditor() {
           titleEn: titleEn.trim(),
           contentEn: contentEn.trim(),
           tags: selectedTags,
+          relatedArticles: selectedRelated,
         });
         clearDraft(draftId);
       } else {
-        await createArticle(title.trim(), content.trim(), selectedTags, titleEn.trim(), contentEn.trim());
+        await createArticle(
+          title.trim(),
+          content.trim(),
+          selectedTags,
+          selectedRelated,
+          titleEn.trim(),
+          contentEn.trim(),
+        );
         clearDraft(draftId);
       }
       navigate(ADMIN_PATH);
@@ -399,6 +429,43 @@ export function ArticleEditor() {
                 </div>
               </div>
             )}
+
+            <div className="space-y-3">
+              <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+                Artigos Relacionados
+              </label>
+              <input
+                type="text"
+                value={relatedFilter}
+                onChange={(e) => setRelatedFilter(e.target.value)}
+                placeholder="Buscar artigo por título..."
+                className="w-full px-4 py-2.5 text-sm bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-neutral-300 text-neutral-900 dark:text-white focus:outline-none transition-colors placeholder:text-neutral-400"
+              />
+              <div className="flex flex-wrap gap-2 max-h-52 overflow-y-auto">
+                {allArticles
+                  .filter((a) => a.status === 'published' && a.slug !== slug)
+                  .filter((a) =>
+                    articleTitle(a, 'PT').toLowerCase().includes(relatedFilter.trim().toLowerCase()),
+                  )
+                  .map((a) => {
+                    const active = selectedRelated.includes(a._id);
+                    return (
+                      <button
+                        key={a._id}
+                        type="button"
+                        onClick={() => toggleRelated(a._id)}
+                        className={`px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider border transition-colors ${
+                          active
+                            ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                            : 'bg-neutral-50 dark:bg-[#1a1a1a] border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300'
+                        }`}
+                      >
+                        {articleTitle(a, 'PT')}
+                      </button>
+                    );
+                  })}
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
               <div className="space-y-3 flex flex-col h-full">

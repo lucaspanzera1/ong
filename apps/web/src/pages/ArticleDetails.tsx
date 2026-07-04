@@ -73,7 +73,7 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      className="py-24 px-6 max-w-4xl mx-auto"
+      className="py-24 px-6 max-w-5xl mx-auto w-full"
     >
       <Link
         to="/"
@@ -160,6 +160,27 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
           {article.views} {lang === 'EN' ? 'views' : 'visualizações'}
         </div>
       </div>
+
+      {article.relatedArticles.length > 0 && (
+        <div className="border-t border-black/10 dark:border-white/10 pt-12 mt-12">
+          <h2 className="font-mono text-xs tracking-widest uppercase text-neutral-500 dark:text-neutral-400 mb-6">
+            {lang === 'EN' ? 'Related articles' : 'Artigos relacionados'}
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {article.relatedArticles.map((related) => (
+              <Link
+                key={related._id}
+                to={`/articles/${related.slug}`}
+                className="block px-5 py-4 bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-900 dark:hover:border-neutral-300 transition-colors"
+              >
+                <span className="text-sm font-medium text-neutral-900 dark:text-white">
+                  {articleTitle(related, lang)}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </motion.article>
   );
 }

@@ -6,7 +6,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import {
   Article,
   ArticleDocument,
@@ -61,6 +61,7 @@ export interface ArticleCreate {
   tags: string[];
   titleEn?: string;
   contentEn?: string;
+  relatedArticles?: string[];
 }
 
 export interface ArticleUpdate {
@@ -70,6 +71,7 @@ export interface ArticleUpdate {
   contentEn?: string;
   tags?: string[];
   status?: ArticleStatus;
+  relatedArticles?: string[];
 }
 
 function isDuplicateKeyError(err: unknown): boolean {
@@ -103,6 +105,7 @@ export class ArticlesService {
   async findPublishedBySlug(slug: string): Promise<ArticleDocument> {
     const article = await this.articleModel
       .findOne({ slug, status: 'published' })
+      .populate({ path: 'relatedArticles', select: 'title titleEn slug status' })
       .exec();
     if (!article) {
       throw new NotFoundException('Article not found');
@@ -112,6 +115,9 @@ export class ArticlesService {
 
   async create(data: ArticleCreate): Promise<Article> {
     const slug = slugify(data.title);
+    const relatedArticles = await this.resolvePublishedIds(
+      data.relatedArticles ?? [],
+    );
     try {
       return await this.articleModel.create({
         title: data.title,
@@ -120,6 +126,7 @@ export class ArticlesService {
         tags: data.tags,
         titleEn: data.titleEn || undefined,
         contentEn: data.contentEn || undefined,
+        relatedArticles,
       });
     } catch (err: unknown) {
       if (isDuplicateKeyError(err)) {
@@ -142,7 +149,30 @@ export class ArticlesService {
       article.contentEn = updates.contentEn || undefined;
     if (updates.tags !== undefined) article.tags = updates.tags;
     if (updates.status !== undefined) article.status = updates.status;
+    if (updates.relatedArticles !== undefined) {
+      const selfId = String(article._id);
+      const resolved = await this.resolvePublishedIds(updates.relatedArticles);
+      article.relatedArticles = resolved.filter(
+        (id) => id !== selfId,
+      ) as unknown as Types.ObjectId[];
+    }
     return article.save();
+  }
+
+  // Only articles that are currently published may be linked as "related" —
+  // this keeps drafts/archived articles from being reachable through another
+  // article's page, and also drops malformed/deleted ids instead of letting
+  // an invalid ObjectId crash the $in query below.
+  private async resolvePublishedIds(ids: string[]): Promise<string[]> {
+    const candidateIds = ids.filter((id) => Types.ObjectId.isValid(id));
+    if (candidateIds.length === 0) return [];
+    const published = await this.articleModel
+      .find({ _id: { $in: candidateIds }, status: 'published' })
+      .select('_id')
+      .lean()
+      .exec();
+    const allowed = new Set(published.map((a) => String(a._id)));
+    return candidateIds.filter((id) => allowed.has(id));
   }
 
   async viewAndGet(
