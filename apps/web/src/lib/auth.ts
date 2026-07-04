@@ -13,3 +13,7 @@ export async function getSession(): Promise<Session | null> {
 export async function logout(): Promise<void> {
   await fetch(`${API_URL}/auth/logout`, { method: 'POST', credentials: 'include' });
 }
+
+export async function refreshSession(): Promise<void> {
+  await fetch(`${API_URL}/auth/refresh`, { method: 'POST', credentials: 'include' });
+}

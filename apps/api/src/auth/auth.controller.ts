@@ -46,17 +46,7 @@ export class AuthController {
   ): Promise<void> {
     const email = await this.tokenService.verifyLoginToken(token);
     const sessionToken = await this.tokenService.createSessionToken(email);
-
-    const cookieName = this.config.getOrThrow<string>('AUTH_COOKIE_NAME');
-    const isProduction = this.config.get<string>('NODE_ENV') === 'production';
-
-    res.cookie(cookieName, sessionToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: this.tokenService.sessionTtlMs,
-      path: '/',
-    });
+    this.setSessionCookie(res, sessionToken);
 
     const appUrl = this.config.getOrThrow<string>('APP_URL');
     const redirectPath = this.config.getOrThrow<string>('AUTH_REDIRECT_PATH');
@@ -74,5 +64,31 @@ export class AuthController {
   @UseGuards(SessionGuard)
   me(@Req() req: AuthenticatedRequest): { email: string } {
     return { email: req.user!.email };
+  }
+
+  @Post('refresh')
+  @HttpCode(200)
+  @UseGuards(SessionGuard)
+  async refresh(
+    @Req() req: AuthenticatedRequest,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ email: string }> {
+    const email = req.user!.email;
+    const sessionToken = await this.tokenService.createSessionToken(email);
+    this.setSessionCookie(res, sessionToken);
+    return { email };
+  }
+
+  private setSessionCookie(res: Response, sessionToken: string): void {
+    const cookieName = this.config.getOrThrow<string>('AUTH_COOKIE_NAME');
+    const isProduction = this.config.get<string>('NODE_ENV') === 'production';
+
+    res.cookie(cookieName, sessionToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
+      maxAge: this.tokenService.sessionTtlMs,
+      path: '/',
+    });
   }
 }
