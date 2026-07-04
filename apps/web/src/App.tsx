@@ -6,7 +6,6 @@ import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
 import { RouteTracker } from './components/RouteTracker';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
-import { ProjectDetails } from './pages/ProjectDetails';
 import { Admin } from './pages/Admin';
 import { Tags } from './pages/Tags';
 import { Articles } from './pages/Articles';
@@ -44,7 +43,6 @@ function App() {
         <main className="flex-1 flex flex-col">
           <Routes>
             <Route path="/" element={<Projects lang={lang} />} />
-            <Route path="/project/:id" element={<ProjectDetails lang={lang} />} />
             <Route path="/tags" element={<Tags lang={lang} />} />
             <Route path="/articles" element={<Articles lang={lang} />} />
             <Route path="/articles/:slug" element={<ArticleDetails lang={lang} />} />

@@ -1,5 +1,3 @@
-import { Terminal, Shield, Cpu, Activity } from 'lucide-react';
-
 export const projectsData = {
   EN: {
     sectionTitle: "Projects & Research",
