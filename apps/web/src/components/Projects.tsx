@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ExternalLink, FileText, type LucideIcon } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { projectsData } from '../data/projects';
 import { listArticles, articleExcerpt, articleTitle, articleBody } from '../lib/articles';
-import { listTags, translateTagLabel, type Tag } from '../lib/tags';
+import { listTags, primaryTagInfo, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ProjectsProps {
   lang: 'EN' | 'PT';
@@ -15,7 +15,7 @@ interface CardItem {
   title: string;
   description: string;
   category: string;
-  icon: LucideIcon;
+  categoryIcon: string | null;
   tags: string[];
   link: string;
 }
@@ -24,27 +24,35 @@ export function Projects({ lang }: ProjectsProps) {
   const currentContent = projectsData[lang];
   const [articleItems, setArticleItems] = useState<CardItem[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     listTags().then(setTags).catch(() => {});
   }, []);
 
   useEffect(() => {
+    setIsLoading(true);
     listArticles()
-      .then(articles =>
+      .then(articles => {
         setArticleItems(
-          articles.map(article => ({
-            key: `article-${article._id}`,
-            title: articleTitle(article, lang),
-            description: articleExcerpt(articleBody(article, lang)),
-            category: lang === 'EN' ? 'Article' : 'Artigo',
-            icon: FileText,
-            tags: article.tags.map(tag => translateTagLabel(tags, tag, lang)),
-            link: `/articles/${article.slug}`,
-          })),
-        ),
-      )
-      .catch(() => {});
+          articles.map(article => {
+            const info = primaryTagInfo(article.tags, tags, lang);
+            return {
+              key: `article-${article._id}`,
+              title: articleTitle(article, lang),
+              description: articleExcerpt(articleBody(article, lang)),
+              category: info?.name ?? (lang === 'EN' ? 'Article' : 'Artigo'),
+              categoryIcon: info?.icon ?? null,
+              tags: article.tags.map(tag => translateTagLabel(tags, tag, lang)),
+              link: `/articles/${article.slug}`,
+            };
+          }),
+        );
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setIsLoading(false);
+      });
   }, [lang, tags]);
 
   const items = articleItems;
@@ -57,9 +65,29 @@ export function Projects({ lang }: ProjectsProps) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {items.map((item, index) => {
-          const Icon = item.icon;
-          return (
+        {isLoading ? (
+          [1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col justify-between h-full p-6 bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 animate-pulse min-h-[250px] transition-colors duration-300">
+              <div>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-neutral-200 dark:bg-neutral-800 rounded-sm transition-colors duration-300" />
+                    <div className="w-16 h-4 bg-neutral-200 dark:bg-neutral-800 rounded-sm transition-colors duration-300" />
+                  </div>
+                </div>
+                <div className="w-3/4 h-6 bg-neutral-200 dark:bg-neutral-800 mb-3 rounded-sm transition-colors duration-300" />
+                <div className="w-full h-4 bg-neutral-200 dark:bg-neutral-800 mb-2 rounded-sm transition-colors duration-300" />
+                <div className="w-5/6 h-4 bg-neutral-200 dark:bg-neutral-800 mb-8 rounded-sm transition-colors duration-300" />
+              </div>
+              <div className="flex gap-2 mt-auto">
+                <div className="w-12 h-6 bg-neutral-200 dark:bg-neutral-800 rounded-sm transition-colors duration-300" />
+                <div className="w-16 h-6 bg-neutral-200 dark:bg-neutral-800 rounded-sm transition-colors duration-300" />
+              </div>
+            </div>
+          ))
+        ) : (
+          items.map((item, index) => {
+            return (
             <motion.div
               key={item.key}
               initial={{ opacity: 0, y: 20 }}
@@ -77,8 +105,12 @@ export function Projects({ lang }: ProjectsProps) {
                 <div>
                   <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-neutral-100 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400 group-hover:bg-neutral-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-neutral-900 transition-colors">
-                        <Icon className="w-4 h-4" />
+                      <div className="w-8 h-8 flex items-center justify-center shrink-0 bg-neutral-100 dark:bg-neutral-800/50 text-neutral-600 dark:text-neutral-400 group-hover:bg-neutral-900 dark:group-hover:bg-white group-hover:text-white dark:group-hover:text-neutral-900 transition-colors">
+                        {item.categoryIcon ? (
+                          <span className="material-symbols-outlined text-[15px] leading-none">{item.categoryIcon}</span>
+                        ) : (
+                          <FileText className="w-4 h-4" />
+                        )}
                       </div>
                       <span className="font-mono text-xs tracking-widest uppercase text-neutral-500 dark:text-neutral-400 transition-colors">
                         {item.category}
@@ -105,7 +137,7 @@ export function Projects({ lang }: ProjectsProps) {
               </Link>
             </motion.div>
           );
-        })}
+        }))}
       </div>
     </section>
   );

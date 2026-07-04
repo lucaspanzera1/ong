@@ -12,7 +12,7 @@ import {
   articleBody,
   type ArticleWithVote,
 } from '../lib/articles';
-import { listTags, translateTagLabel, type Tag } from '../lib/tags';
+import { listTags, primaryTagInfo, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ArticleDetailsProps {
   lang: 'EN' | 'PT';
@@ -66,6 +66,8 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
 
   if (!article) return null;
 
+  const primaryInfo = primaryTagInfo(article.tags, tags, lang);
+
   return (
     <motion.article
       initial={{ opacity: 0, y: 20 }}
@@ -83,11 +85,15 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
 
       <header className="mb-16">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-3 bg-neutral-100 dark:bg-neutral-800/50 text-neutral-900 dark:text-white">
-            <FileText className="w-6 h-6" />
+          <div className="w-10 h-10 flex items-center justify-center shrink-0 bg-neutral-100 dark:bg-neutral-800/50 text-neutral-900 dark:text-white">
+            {primaryInfo ? (
+              <span className="material-symbols-outlined text-[18px] leading-none">{primaryInfo.icon}</span>
+            ) : (
+              <FileText className="w-4 h-4" />
+            )}
           </div>
           <span className="font-mono text-sm tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
-            {lang === 'EN' ? 'Article' : 'Artigo'}
+            {primaryInfo?.name ?? (lang === 'EN' ? 'Article' : 'Artigo')}
           </span>
         </div>
         <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-6">

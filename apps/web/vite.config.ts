@@ -12,6 +12,15 @@ export default defineConfig(({ mode }) => {
   const allowedHosts = env.VITE_ALLOWED_HOSTS
     ? env.VITE_ALLOWED_HOSTS.split(',').map((host) => host.trim())
     : undefined
+  // serves the Nest API under /s so the browser only ever talks to one origin
+  // regex (not a plain prefix) so it matches /s and /s/... but not /src/*
+  // needed by both the dev server and "vite preview" (production)
+  const proxy = {
+    '^/s(/|$)': {
+      target: apiTarget,
+      changeOrigin: true,
+    },
+  }
 
   return {
     plugins: [react(), tailwindcss()],
@@ -20,18 +29,12 @@ export default defineConfig(({ mode }) => {
     server: {
       port,
       allowedHosts,
-      // serves the Nest API under /s so the browser only ever talks to one origin
-      // regex (not a plain prefix) so it matches /s and /s/... but not /src/*
-      proxy: {
-        '^/s(/|$)': {
-          target: apiTarget,
-          changeOrigin: true,
-        },
-      },
+      proxy,
     },
     preview: {
       port,
       allowedHosts,
+      proxy,
     },
   }
 })

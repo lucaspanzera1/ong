@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,7 +9,7 @@ import {
   updateArticle,
   uploadImage,
 } from '../lib/articles';
-import { listTags, type Tag } from '../lib/tags';
+import { buildTagTree, flattenTagTree, listTags, type Tag } from '../lib/tags';
 import { clearDraft, isDraftEmpty, loadDraft, saveDraft, type ArticleDraft } from '../lib/draft';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
@@ -20,6 +20,10 @@ export function ArticleEditor() {
   const isEditing = Boolean(slug);
 
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const orderedTags = useMemo(
+    () => flattenTagTree(buildTagTree(availableTags)),
+    [availableTags],
+  );
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [titleEn, setTitleEn] = useState('');
@@ -352,13 +356,14 @@ export function ArticleEditor() {
                   Tags
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {availableTags.map((tag) => {
+                  {orderedTags.map(({ tag, depth }) => {
                     const active = selectedTags.includes(tag.name);
                     return (
                       <button
                         key={tag._id}
                         type="button"
                         onClick={() => toggleTag(tag.name)}
+                        style={{ marginLeft: depth * 16 }}
                         className={`flex items-center gap-2 px-3 py-1.5 font-mono text-[10px] uppercase tracking-wider border transition-colors ${
                           active
                             ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { articleTitle, listArticles, type Article } from '../lib/articles';
-import { listTags, translateTagLabel, type Tag } from '../lib/tags';
+import { listTags, primaryTagInfo, translateTagLabel, type Tag } from '../lib/tags';
 
 interface ArticlesProps {
   lang: 'EN' | 'PT';
@@ -48,29 +48,38 @@ export function Articles({ lang }: ArticlesProps) {
       </header>
 
       <div className="flex flex-col gap-4">
-        {articles.map(article => (
-          <Link
-            key={article._id}
-            to={`/articles/${article.slug}`}
-            className="group flex items-center justify-between gap-4 px-6 py-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all shadow-sm hover:shadow-md"
-          >
-            <div className="flex flex-col gap-2 min-w-0">
-              <span className="text-lg font-medium text-neutral-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 truncate">
-                {articleTitle(article, lang)}
-              </span>
-              <div className="flex flex-wrap gap-1.5">
-                {article.tags.map(tag => (
-                  <span key={tag} className="text-xs px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
-                    {translateTagLabel(tags, tag, lang)}
+        {articles.map(article => {
+          const info = primaryTagInfo(article.tags, tags, lang);
+          return (
+            <Link
+              key={article._id}
+              to={`/articles/${article.slug}`}
+              className="group flex items-center justify-between gap-4 px-6 py-5 rounded-2xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 transition-all shadow-sm hover:shadow-md"
+            >
+              <div className="flex flex-col gap-2 min-w-0">
+                {info && (
+                  <span className="inline-flex items-center gap-1.5 w-fit text-[11px] font-mono uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                    <span className="material-symbols-outlined text-[13px] leading-none">{info.icon}</span>
+                    {info.name}
                   </span>
-                ))}
+                )}
+                <span className="text-lg font-medium text-neutral-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 truncate">
+                  {articleTitle(article, lang)}
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {article.tags.map(tag => (
+                    <span key={tag} className="text-xs px-2 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
+                      {translateTagLabel(tags, tag, lang)}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-            <span className="material-symbols-outlined text-neutral-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0">
-              arrow_forward
-            </span>
-          </Link>
-        ))}
+              <span className="material-symbols-outlined text-neutral-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all shrink-0">
+                arrow_forward
+              </span>
+            </Link>
+          );
+        })}
         {articles.length === 0 && (
           <p className="text-neutral-400 text-sm">{currentContent.empty}</p>
         )}

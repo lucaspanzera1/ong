@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { listTags, tagName, type Tag } from '../lib/tags';
+import { buildTagTree, listTags, tagName, type Tag, type TagNode } from '../lib/tags';
 
 interface TagsProps {
   lang: 'EN' | 'PT';
@@ -43,22 +43,36 @@ export function Tags({ lang }: TagsProps) {
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-3">
-        {tags.map(tag => (
-          <div
-            key={tag._id}
-            className="group flex items-center gap-2.5 px-4 py-2 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 text-sm text-neutral-700 dark:text-neutral-300 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 hover:text-blue-700 dark:hover:text-blue-300 transition-all cursor-default shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-300"
-          >
-            <span className="material-symbols-outlined text-[20px] text-neutral-400 group-hover:text-blue-500 transition-colors">
-              {tag.icon}
-            </span>
-            <span className="font-medium pr-1">{tagName(tag, lang)}</span>
-          </div>
+      <div className="flex flex-col gap-6">
+        {buildTagTree(tags).map(node => (
+          <TagGroup key={node._id} node={node} lang={lang} />
         ))}
         {tags.length === 0 && (
           <p className="text-neutral-400 text-sm">{currentContent.empty}</p>
         )}
       </div>
     </motion.section>
+  );
+}
+
+function TagGroup({ node, lang }: { node: TagNode; lang: 'EN' | 'PT' }) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div
+        className="group flex items-center gap-2.5 px-4 py-2 rounded-xl border border-neutral-200/80 dark:border-neutral-700/50 bg-white dark:bg-neutral-900/80 text-sm text-neutral-700 dark:text-neutral-300 hover:border-blue-500/40 hover:bg-blue-50/50 dark:hover:bg-blue-500/10 hover:text-blue-700 dark:hover:text-blue-300 transition-all cursor-default shadow-sm hover:shadow-md hover:-translate-y-0.5 duration-300 w-fit"
+      >
+        <span className="material-symbols-outlined text-[20px] text-neutral-400 group-hover:text-blue-500 transition-colors">
+          {node.icon}
+        </span>
+        <span className="font-medium pr-1">{tagName(node, lang)}</span>
+      </div>
+      {node.children.length > 0 && (
+        <div className="flex flex-wrap gap-3 pl-6 border-l-2 border-neutral-200/60 dark:border-neutral-800/60">
+          {node.children.map(child => (
+            <TagGroup key={child._id} node={child} lang={lang} />
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
