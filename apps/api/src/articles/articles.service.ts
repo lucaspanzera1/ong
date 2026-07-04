@@ -276,7 +276,7 @@ export class ArticlesService {
       .findByIdAndUpdate(
         articleId,
         { $inc: { upvotes: upvoteDelta, downvotes: downvoteDelta } },
-        { new: true },
+        { returnDocument: 'after' },
       )
       .exec();
     if (!updated) {
