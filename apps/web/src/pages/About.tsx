@@ -94,7 +94,7 @@ export function About({ lang }: AboutProps) {
                 <a href="https://www.lucaspanzera.com/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-xl bg-neutral-100 dark:bg-[#111111] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-all hover:scale-105" aria-label="Website">
                   <Globe className="w-5 h-5" />
                 </a>
-                <a href="mailto:contact@lucaspanzera.com" className="p-3 rounded-xl bg-neutral-100 dark:bg-[#111111] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-all hover:scale-105" aria-label="Email">
+                <a href="mailto:lucassouzapanzera@gmail.com" className="p-3 rounded-xl bg-neutral-100 dark:bg-[#111111] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-900 dark:hover:text-white transition-all hover:scale-105" aria-label="Email">
                   <Mail className="w-5 h-5" />
                 </a>
               </div>

@@ -132,6 +132,24 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
   const [deleted, setDeleted] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [uptime, setUptime] = useState(0);
+  const [brtTime, setBrtTime] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setUptime(prev => prev + 1);
+      setBrtTime(new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    }, 1000);
+    setBrtTime(new Date().toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo', hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatUptime = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -151,12 +169,19 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
 
   return (
     <footer id="contact" className="border-t border-black/5 dark:border-white/5 mt-20 transition-colors duration-300">
-      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 md:gap-0">
-        <div className="text-sm text-neutral-500 dark:text-neutral-500">
-          © {new Date().getFullYear()} Panzera.
+      <div className="max-w-5xl mx-auto px-6 py-10 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 lg:gap-0">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs font-mono text-neutral-400 dark:text-neutral-500">
+          <div>© {new Date().getFullYear()} Panzera.</div>
+          <div className="hidden sm:block w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            <span>SYS.UP {formatUptime(uptime)}</span>
+          </div>
+          <div className="hidden sm:block w-1 h-1 rounded-full bg-neutral-300 dark:bg-neutral-700" />
+          <div>BRT {brtTime}</div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-6 mt-2 md:mt-0">
+        <div className="flex flex-wrap items-center gap-6 mt-2 lg:mt-0">
           <div className="relative" ref={menuRef}>
             <button
               type="button"
