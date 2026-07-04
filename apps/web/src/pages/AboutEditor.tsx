@@ -1,0 +1,304 @@
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { getAbout, updateAbout } from '../lib/about';
+import { translateArticle, uploadImage } from '../lib/articles';
+
+const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
+
+export function AboutEditor() {
+  const navigate = useNavigate();
+
+  const [content, setContent] = useState('');
+  const [contentEn, setContentEn] = useState('');
+  const [activeLang, setActiveLang] = useState<'PT' | 'EN'>('PT');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const toolbarButtons = [
+    { icon: 'format_bold', label: 'Negrito', before: '**', after: '**' },
+    { icon: 'format_italic', label: 'Itálico', before: '_', after: '_' },
+    { icon: 'format_h1', label: 'Título 1', before: '# ', after: '' },
+    { icon: 'format_h2', label: 'Título 2', before: '## ', after: '' },
+    { icon: 'format_quote', label: 'Citação', before: '> ', after: '' },
+    { icon: 'code', label: 'Código', before: '`', after: '`' },
+    { icon: 'link', label: 'Link', before: '[', after: '](url)' },
+    { icon: 'image', label: 'Imagem', before: '![alt](', after: ')' },
+    { icon: 'format_list_bulleted', label: 'Lista', before: '- ', after: '' },
+  ];
+
+  const currentContent = activeLang === 'PT' ? content : contentEn;
+  const setCurrentContent = activeLang === 'PT' ? setContent : setContentEn;
+
+  function insertMarkdown(before: string, after: string = '') {
+    if (!textareaRef.current) return;
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const selectedText = currentContent.substring(start, end);
+    const newText = currentContent.substring(0, start) + before + selectedText + after + currentContent.substring(end);
+    setCurrentContent(newText);
+
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        textareaRef.current.setSelectionRange(start + before.length, start + before.length + selectedText.length);
+      }
+    }, 0);
+  }
+
+  async function uploadAndInsertImage(file: File) {
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, faça upload apenas de imagens.');
+      return;
+    }
+    setIsUploadingImage(true);
+    setError(null);
+    try {
+      const url = await uploadImage(file);
+      insertMarkdown(`![${file.name}](${url})`, '');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao fazer upload da imagem');
+    } finally {
+      setIsUploadingImage(false);
+    }
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(true);
+  }
+
+  function handleDragLeave(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      uploadAndInsertImage(e.dataTransfer.files[0]);
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent) {
+    if (e.clipboardData.files && e.clipboardData.files.length > 0) {
+      e.preventDefault();
+      uploadAndInsertImage(e.clipboardData.files[0]);
+    }
+  }
+
+  useEffect(() => {
+    getAbout()
+      .then((about) => {
+        setContent(about.content);
+        setContentEn(about.contentEn ?? '');
+        setLoading(false);
+      })
+      .catch(() => {
+        setError('Falha ao carregar o conteúdo da página about.');
+        setLoading(false);
+      });
+  }, []);
+
+  async function handleTranslate() {
+    if (!content.trim()) {
+      setError('Escreva o conteúdo em português antes de traduzir.');
+      return;
+    }
+    setIsTranslating(true);
+    setError(null);
+    try {
+      const translation = await translateArticle('', content);
+      setContentEn(translation.content);
+      setActiveLang('EN');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao traduzir conteúdo');
+    } finally {
+      setIsTranslating(false);
+    }
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!content.trim()) {
+      setError('Preencha o conteúdo da página about.');
+      return;
+    }
+    setSubmitting(true);
+    setError(null);
+    try {
+      await updateAbout({ content: content.trim(), contentEn: contentEn.trim() });
+      navigate(ADMIN_PATH);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao salvar conteúdo');
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="py-24 px-6 w-full max-w-[95%] xl:max-w-[1400px] mx-auto min-h-[80vh] flex flex-col gap-10 animate-in fade-in duration-500">
+      <header className="mb-8 border-b border-black/10 dark:border-white/10 pb-8 transition-colors duration-300">
+        <div className="flex items-center gap-4 mb-6">
+          <Link
+            to={ADMIN_PATH}
+            className="p-2 bg-neutral-100 dark:bg-[#1a1a1a] border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-900 hover:text-white dark:hover:bg-white dark:hover:text-neutral-900 transition-colors"
+            title="Voltar ao Painel"
+          >
+            <span className="material-symbols-outlined text-lg block">arrow_back</span>
+          </Link>
+          <span className="font-mono text-xs tracking-widest uppercase text-neutral-500 dark:text-neutral-400 transition-colors">
+            Editor
+          </span>
+        </div>
+        <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-neutral-900 dark:text-white mb-4 transition-colors duration-300">
+          Editar Página About
+        </h1>
+        <p className="text-lg text-neutral-600 dark:text-neutral-400 transition-colors">
+          Escreva o conteúdo em Markdown, igual aos artigos.
+        </p>
+      </header>
+
+      <main className="flex flex-col gap-8">
+        {loading ? (
+          <div className="flex justify-center items-center py-20">
+            <span className="material-symbols-outlined text-4xl animate-spin text-neutral-900 dark:text-white">progress_activity</span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-2">
+                {(['PT', 'EN'] as const).map((lang) => (
+                  <button
+                    key={lang}
+                    type="button"
+                    onClick={() => setActiveLang(lang)}
+                    className={`px-4 py-2 font-mono text-[10px] uppercase tracking-widest border transition-colors ${
+                      activeLang === lang
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-neutral-900 dark:border-white'
+                        : 'bg-neutral-50 dark:bg-[#1a1a1a] border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300'
+                    }`}
+                  >
+                    {lang === 'PT' ? 'Português' : 'English'}
+                    {lang === 'EN' && !contentEn.trim() && (
+                      <span className="ml-2 opacity-60">(opcional)</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                onClick={handleTranslate}
+                disabled={isTranslating || !content.trim()}
+                title="Traduzir automaticamente o conteúdo para o inglês"
+                className="flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest border border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <span className={`material-symbols-outlined text-[16px] ${isTranslating ? 'animate-spin' : ''}`}>
+                  {isTranslating ? 'progress_activity' : 'translate'}
+                </span>
+                {isTranslating ? 'Traduzindo...' : 'Traduzir para o Inglês'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
+              <div className="space-y-3 flex flex-col h-full">
+                <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 transition-colors duration-300">
+                  <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+                    Conteúdo (Markdown) {activeLang === 'EN' && '(Inglês)'}
+                  </label>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {toolbarButtons.map((btn, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => insertMarkdown(btn.before, btn.after)}
+                        title={btn.label}
+                        className="p-1.5 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[18px] block">{btn.icon}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative w-full flex-1 flex flex-col min-h-[400px]">
+                  <textarea
+                    ref={textareaRef}
+                    value={currentContent}
+                    onChange={(e) => setCurrentContent(e.target.value)}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onPaste={handlePaste}
+                    placeholder={
+                      activeLang === 'PT'
+                        ? '## Sobre mim\n\nEscreva o conteúdo em **markdown**...'
+                        : '## About me\n\nWrite the content in **markdown**...'
+                    }
+                    className={`w-full h-full flex-1 px-5 py-5 text-sm font-mono leading-relaxed bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-neutral-300 text-neutral-900 dark:text-neutral-200 focus:outline-none transition-all placeholder:text-neutral-400 resize-none ${
+                      isDragging ? 'opacity-50 ring-2 ring-neutral-900 dark:ring-white border-transparent' : ''
+                    }`}
+                  />
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-white/50 dark:bg-black/50 flex items-center justify-center backdrop-blur-sm pointer-events-none z-10 transition-all">
+                      <span className="material-symbols-outlined text-4xl animate-spin text-neutral-900 dark:text-white">progress_activity</span>
+                    </div>
+                  )}
+                  {isDragging && (
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 border-2 border-dashed border-neutral-900 dark:border-white bg-neutral-900/5 dark:bg-white/5 transition-all">
+                      <span className="font-mono text-sm tracking-widest uppercase text-neutral-900 dark:text-white bg-white/90 dark:bg-[#151515]/90 px-6 py-3 shadow-sm border border-neutral-200 dark:border-neutral-800 backdrop-blur-md">
+                        Solte a imagem aqui
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-3 flex flex-col h-full">
+                <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 transition-colors duration-300">
+                  <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+                    Pré-visualização
+                  </label>
+                </div>
+                <div className="flex-1 min-h-[400px] overflow-y-auto px-6 py-6 bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 prose prose-neutral dark:prose-invert max-w-none transition-colors">
+                  {currentContent.trim() ? (
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{currentContent}</ReactMarkdown>
+                  ) : (
+                    <p className="text-neutral-400 text-sm not-prose font-mono">A pré-visualização aparecerá aqui...</p>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {error && (
+              <div className="px-5 py-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 text-sm text-red-600 dark:text-red-400 flex items-center gap-3">
+                <span className="material-symbols-outlined text-xl">error</span>
+                {error}
+              </div>
+            )}
+
+            <div className="flex justify-end pt-8 border-t border-black/10 dark:border-white/10 transition-colors duration-300">
+              <button
+                type="submit"
+                disabled={submitting || isUploadingImage || isTranslating}
+                className="w-full sm:w-auto px-8 py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium tracking-wide uppercase hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
+              >
+                <span className={`material-symbols-outlined text-xl ${submitting || isUploadingImage ? 'animate-spin' : ''}`}>
+                  {submitting || isUploadingImage ? 'progress_activity' : 'save'}
+                </span>
+                {submitting ? 'Salvando...' : isUploadingImage ? 'Aguardando Upload...' : 'Salvar Alterações'}
+              </button>
+            </div>
+          </form>
+        )}
+      </main>
+    </div>
+  );
+}

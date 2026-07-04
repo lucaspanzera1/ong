@@ -13,6 +13,7 @@ import { ArticleDetails } from './pages/ArticleDetails';
 import { ArticleEditor } from './pages/ArticleEditor';
 import { Privacy } from './pages/Privacy';
 import { About } from './pages/About';
+import { AboutEditor } from './pages/AboutEditor';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { NotFound } from './pages/NotFound';
 import { hasDecided } from './lib/consent';
@@ -70,6 +71,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ArticleEditor />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={`${ADMIN_PATH}/about/edit`}
+              element={
+                <ProtectedRoute>
+                  <AboutEditor />
                 </ProtectedRoute>
               }
             />

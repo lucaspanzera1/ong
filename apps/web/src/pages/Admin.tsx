@@ -1,8 +1,10 @@
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { getSession, logout } from '../lib/auth';
 import { TagManager } from '../components/TagManager';
 import { ArticleManager } from '../components/ArticleManager';
+
+const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
 const AnalyticsDashboard = lazy(() =>
   import('../components/AnalyticsDashboard').then(m => ({ default: m.AnalyticsDashboard })),
@@ -55,6 +57,26 @@ export function Admin() {
         <Suspense fallback={null}>
           <AnalyticsDashboard />
         </Suspense>
+        <section className="bg-white/50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-inner">
+                <span className="material-symbols-outlined text-2xl">person</span>
+              </div>
+              <div>
+                <h2 className="text-xl font-semibold text-neutral-900 dark:text-white">Página About</h2>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">Edite o conteúdo em Markdown exibido na página Sobre Mim.</p>
+              </div>
+            </div>
+            <Link
+              to={`${ADMIN_PATH}/about/edit`}
+              className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-neutral-900 hover:bg-neutral-800 dark:bg-white dark:hover:bg-neutral-200 text-white dark:text-black text-sm font-medium transition-all flex items-center justify-center gap-2 shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+            >
+              <span className="material-symbols-outlined text-lg">edit</span>
+              Editar About
+            </Link>
+          </div>
+        </section>
         <TagManager />
         <ArticleManager />
       </main>
