@@ -15,14 +15,32 @@ const COPY = {
     cookiePreferences: 'Preferências de cookies',
     deleteData: 'Excluir meus dados',
     deleted: 'Dados excluídos',
+    cookies: 'Cookies',
+    about: 'Sobre',
+    github: 'GitHub',
+    linkedin: 'LinkedIn',
   },
   EN: {
     privacy: 'Privacy',
     cookiePreferences: 'Cookie preferences',
     deleteData: 'Delete my data',
     deleted: 'Data deleted',
+    cookies: 'Cookies',
+    about: 'About',
+    github: 'GitHub',
+    linkedin: 'LinkedIn',
   },
 };
+
+function IconTooltip({ label }: { label: string }) {
+  return (
+    <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 origin-bottom opacity-0 scale-95 translate-y-1 transition-all duration-150 group-hover:opacity-100 group-hover:scale-100 group-hover:translate-y-0">
+      <div className="whitespace-nowrap rounded-lg border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-[#111111] px-3 py-1.5 text-xs font-medium text-neutral-600 dark:text-neutral-400 shadow-xl">
+        {label}
+      </div>
+    </div>
+  );
+}
 
 function PixelCookieIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -104,7 +122,7 @@ export function PixelLinkedinIcon(props: React.SVGProps<SVGSVGElement>) {
   );
 }
 
-function PixelHandIcon(props: React.SVGProps<SVGSVGElement>) {
+function PixelInfoIcon(props: React.SVGProps<SVGSVGElement>) {
   return (
     <svg
       {...props}
@@ -113,16 +131,24 @@ function PixelHandIcon(props: React.SVGProps<SVGSVGElement>) {
       fill="currentColor"
       shapeRendering="crispEdges"
     >
-      {/* Middle finger */}
-      <rect x="7" y="1" width="2" height="7" />
-      {/* Index finger */}
-      <rect x="4" y="3" width="2" height="5" />
-      {/* Ring/Pinky finger */}
-      <rect x="10" y="3" width="2" height="5" />
-      {/* Palm */}
-      <rect x="4" y="8" width="8" height="6" />
-      {/* Thumb */}
-      <rect x="1" y="7" width="3" height="3" />
+      {/* Circle outline */}
+      <rect x="5" y="1" width="6" height="1" />
+      <rect x="11" y="2" width="2" height="1" />
+      <rect x="13" y="3" width="1" height="2" />
+      <rect x="14" y="5" width="1" height="6" />
+      <rect x="13" y="11" width="1" height="2" />
+      <rect x="11" y="13" width="2" height="1" />
+      <rect x="5" y="14" width="6" height="1" />
+      <rect x="3" y="13" width="2" height="1" />
+      <rect x="2" y="11" width="1" height="2" />
+      <rect x="1" y="5" width="1" height="6" />
+      <rect x="2" y="3" width="1" height="2" />
+      <rect x="3" y="2" width="2" height="1" />
+
+      {/* "i" dot */}
+      <rect x="7" y="4" width="2" height="2" />
+      {/* "i" stem */}
+      <rect x="7" y="7" width="2" height="5" />
     </svg>
   );
 }
@@ -182,7 +208,7 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
         </div>
 
         <div className="flex flex-wrap items-center gap-6 mt-2 lg:mt-0">
-          <div className="relative" ref={menuRef}>
+          <div className="relative group" ref={menuRef}>
             <button
               type="button"
               onClick={() => setMenuOpen(!menuOpen)}
@@ -191,6 +217,8 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
             >
               <PixelCookieIcon className="w-5 h-5" />
             </button>
+
+            {!menuOpen && <IconTooltip label={copy.cookies} />}
 
             <AnimatePresence>
               {menuOpen && (
@@ -234,13 +262,16 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
               )}
             </AnimatePresence>
           </div>
-          <Link to="/about" aria-label="About" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
-            <PixelHandIcon className="w-5 h-5" />
+          <Link to="/about" aria-label="About" className="relative group text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+            <IconTooltip label={copy.about} />
+            <PixelInfoIcon className="w-5 h-5" />
           </Link>
-          <a href="https://github.com/lucaspanzera1" aria-label="GitHub" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+          <a href="https://github.com/lucaspanzera1" aria-label="GitHub" className="relative group text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+            <IconTooltip label={copy.github} />
             <PixelCodeIcon className="w-5 h-5" />
           </a>
-          <a href="https://www.linkedin.com/in/lucas-panzera/" aria-label="LinkedIn" className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+          <a href="https://www.linkedin.com/in/lucas-panzera/" aria-label="LinkedIn" className="relative group text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center justify-center p-1 -m-1">
+            <IconTooltip label={copy.linkedin} />
             <PixelLinkedinIcon className="w-5 h-5" />
           </a>
         </div>
