@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Header } from './components/Header';
 import { ScrollToTop } from './components/ScrollToTop';
@@ -21,7 +21,19 @@ const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
 function App() {
   const [lang, setLang] = useState<'EN' | 'PT'>('EN');
-  const [cookieBannerOpen, setCookieBannerOpen] = useState(!hasDecided());
+  const [cookieBannerOpen, setCookieBannerOpen] = useState(false);
+
+  useEffect(() => {
+    if (!hasDecided()) {
+      const timer = setTimeout(() => {
+        // Double check in case user opened it manually and decided within the minute
+        if (!hasDecided()) {
+          setCookieBannerOpen(true);
+        }
+      }, 60000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   return (
     <Router>

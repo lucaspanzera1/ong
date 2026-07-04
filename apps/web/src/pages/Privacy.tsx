@@ -31,9 +31,10 @@ const CONTENT = {
       {
         heading: 'Seus direitos',
         body: [
-          'Você pode aceitar ou recusar o cookie de analytics a qualquer momento pelo link "Preferências de cookies" no rodapé do site.',
+          'Para garantir que sua navegação inicial seja tranquila e anônima, o aviso de consentimento só aparece automaticamente após 1 minuto no site.',
+          'Você pode aceitar ou recusar o cookie de analytics a qualquer momento clicando no ícone de Cookie no rodapé do site.',
           'Recusar depois de ter aceitado também apaga os dados já coletados sobre você, não só os futuros.',
-          'Você também pode apagar seus dados de analytics a qualquer momento pelo link "Excluir meus dados" no rodapé, mesmo sem mudar sua preferência de consentimento.',
+          'Você também pode apagar seus dados de analytics a qualquer momento pela opção "Excluir meus dados", acessível pelo mesmo ícone de Cookie no rodapé.',
         ],
       },
     ],
@@ -63,9 +64,10 @@ const CONTENT = {
       {
         heading: 'Your rights',
         body: [
-          'You can accept or reject the analytics cookie at any time via the "Cookie preferences" link in the site footer.',
+          'To ensure your initial browsing is smooth and anonymous, the consent notice only appears automatically after 1 minute on the site.',
+          'You can accept or reject the analytics cookie at any time by clicking the Cookie icon in the site footer.',
           'Rejecting after having accepted also deletes data already collected about you, not just future data.',
-          'You can also delete your analytics data at any time via the "Delete my data" link in the footer, even without changing your consent choice.',
+          'You can also delete your analytics data at any time via the "Delete my data" option, accessible through the same Cookie icon in the footer.',
         ],
       },
     ],
