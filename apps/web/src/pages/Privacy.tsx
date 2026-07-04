@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Cookie } from 'lucide-react';
 
 interface PrivacyProps {
   lang: 'EN' | 'PT';
@@ -96,7 +96,7 @@ export function Privacy({ lang }: PrivacyProps) {
       <header className="mb-16">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-neutral-100 dark:bg-neutral-800/50 text-neutral-900 dark:text-white">
-            <ShieldCheck className="w-6 h-6" />
+            <Cookie className="w-6 h-6" />
           </div>
           <span className="font-mono text-sm tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
             {content.eyebrow}
