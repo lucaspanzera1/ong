@@ -1,4 +1,4 @@
-const DRAFT_KEY = 'article-draft';
+const DRAFT_KEY_PREFIX = 'article-draft';
 
 export interface ArticleDraft {
   title: string;
@@ -9,12 +9,18 @@ export interface ArticleDraft {
   savedAt: string;
 }
 
-export function saveDraft(draft: Omit<ArticleDraft, 'savedAt'>) {
-  localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+// `id` is the article slug being edited, or 'new' for the create flow — keeping
+// drafts per-article avoids one article's autosave clobbering another's.
+function draftKey(id: string) {
+  return `${DRAFT_KEY_PREFIX}:${id}`;
 }
 
-export function loadDraft(): ArticleDraft | null {
-  const raw = localStorage.getItem(DRAFT_KEY);
+export function saveDraft(id: string, draft: Omit<ArticleDraft, 'savedAt'>) {
+  localStorage.setItem(draftKey(id), JSON.stringify({ ...draft, savedAt: new Date().toISOString() }));
+}
+
+export function loadDraft(id: string): ArticleDraft | null {
+  const raw = localStorage.getItem(draftKey(id));
   if (!raw) return null;
   try {
     return JSON.parse(raw) as ArticleDraft;
@@ -23,8 +29,8 @@ export function loadDraft(): ArticleDraft | null {
   }
 }
 
-export function clearDraft() {
-  localStorage.removeItem(DRAFT_KEY);
+export function clearDraft(id: string) {
+  localStorage.removeItem(draftKey(id));
 }
 
 export function isDraftEmpty(draft: Omit<ArticleDraft, 'savedAt'>): boolean {
@@ -34,5 +40,20 @@ export function isDraftEmpty(draft: Omit<ArticleDraft, 'savedAt'>): boolean {
     !draft.titleEn.trim() &&
     !draft.contentEn.trim() &&
     draft.tags.length === 0
+  );
+}
+
+export function draftMatches(
+  draft: Omit<ArticleDraft, 'savedAt'>,
+  other: Omit<ArticleDraft, 'savedAt'> | null,
+): boolean {
+  if (!other) return false;
+  return (
+    draft.title === other.title &&
+    draft.content === other.content &&
+    draft.titleEn === other.titleEn &&
+    draft.contentEn === other.contentEn &&
+    draft.tags.length === other.tags.length &&
+    draft.tags.every((t, i) => t === other.tags[i])
   );
 }

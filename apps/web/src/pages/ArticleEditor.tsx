@@ -10,7 +10,7 @@ import {
   uploadImage,
 } from '../lib/articles';
 import { buildTagTree, flattenTagTree, listTags, type Tag } from '../lib/tags';
-import { clearDraft, isDraftEmpty, loadDraft, saveDraft, type ArticleDraft } from '../lib/draft';
+import { clearDraft, draftMatches, isDraftEmpty, loadDraft, saveDraft, type ArticleDraft } from '../lib/draft';
 
 const ADMIN_PATH = import.meta.env.VITE_ADMIN_PATH;
 
@@ -18,6 +18,7 @@ export function ArticleEditor() {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
   const isEditing = Boolean(slug);
+  const draftId = slug ?? 'new';
 
   const [availableTags, setAvailableTags] = useState<Tag[]>([]);
   const orderedTags = useMemo(
@@ -41,7 +42,8 @@ export function ArticleEditor() {
 
   // Draft State
   const [pendingDraft, setPendingDraft] = useState<ArticleDraft | null>(null);
-  const [draftDecided, setDraftDecided] = useState(isEditing);
+  const [draftDecided, setDraftDecided] = useState(false);
+  const originalRef = useRef<Omit<ArticleDraft, 'savedAt'> | null>(null);
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -126,22 +128,40 @@ export function ArticleEditor() {
         .then((articles) => {
           const article = articles.find((a) => a.slug === slug);
           if (article) {
-            setTitle(article.title);
-            setContent(article.content);
-            setTitleEn(article.titleEn ?? '');
-            setContentEn(article.contentEn ?? '');
-            setSelectedTags(article.tags);
+            const original = {
+              title: article.title,
+              content: article.content,
+              titleEn: article.titleEn ?? '',
+              contentEn: article.contentEn ?? '',
+              tags: article.tags,
+            };
+            originalRef.current = original;
+            setTitle(original.title);
+            setContent(original.content);
+            setTitleEn(original.titleEn);
+            setContentEn(original.contentEn);
+            setSelectedTags(original.tags);
+
+            const draft = loadDraft(slug);
+            if (draft && !isDraftEmpty(draft) && !draftMatches(draft, original)) {
+              setPendingDraft(draft);
+            } else {
+              if (draft) clearDraft(slug);
+              setDraftDecided(true);
+            }
           } else {
             setError('Artigo não encontrado.');
+            setDraftDecided(true);
           }
           setLoading(false);
         })
         .catch(() => {
           setError('Falha ao carregar o artigo.');
           setLoading(false);
+          setDraftDecided(true);
         });
     } else {
-      const draft = loadDraft();
+      const draft = loadDraft('new');
       if (draft && !isDraftEmpty(draft)) {
         setPendingDraft(draft);
       } else {
@@ -162,24 +182,24 @@ export function ArticleEditor() {
   }
 
   function discardDraft() {
-    clearDraft();
+    clearDraft(draftId);
     setPendingDraft(null);
     setDraftDecided(true);
   }
 
-  // Autosave draft while writing a new (unpublished) article.
+  // Autosave a draft while writing a new article or editing an existing one.
   useEffect(() => {
-    if (isEditing || !draftDecided) return;
+    if (!draftDecided) return;
     const current = { title, content, titleEn, contentEn, tags: selectedTags };
     const handle = setTimeout(() => {
-      if (isDraftEmpty(current)) {
-        clearDraft();
+      if (isDraftEmpty(current) || draftMatches(current, originalRef.current)) {
+        clearDraft(draftId);
       } else {
-        saveDraft(current);
+        saveDraft(draftId, current);
       }
     }, 800);
     return () => clearTimeout(handle);
-  }, [isEditing, draftDecided, title, content, titleEn, contentEn, selectedTags]);
+  }, [draftDecided, draftId, title, content, titleEn, contentEn, selectedTags]);
 
   function toggleTag(name: string) {
     setSelectedTags((prev) =>
@@ -228,9 +248,10 @@ export function ArticleEditor() {
           contentEn: contentEn.trim(),
           tags: selectedTags,
         });
+        clearDraft(draftId);
       } else {
         await createArticle(title.trim(), content.trim(), selectedTags, titleEn.trim(), contentEn.trim());
-        clearDraft();
+        clearDraft(draftId);
       }
       navigate(ADMIN_PATH);
     } catch (err) {
@@ -248,7 +269,7 @@ export function ArticleEditor() {
               Rascunho encontrado
             </span>
             <h2 className="text-xl font-semibold text-neutral-900 dark:text-white mt-2 mb-3">
-              Você tem um rascunho não publicado
+              {isEditing ? 'Você tem alterações não salvas' : 'Você tem um rascunho não publicado'}
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-1">
               {pendingDraft.title.trim() || 'Sem título'}
@@ -269,7 +290,7 @@ export function ArticleEditor() {
                 onClick={discardDraft}
                 className="flex-1 px-4 py-3 border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400 text-sm font-medium tracking-wide uppercase hover:border-neutral-900 dark:hover:border-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors"
               >
-                Começar do zero
+                {isEditing ? 'Descartar rascunho' : 'Começar do zero'}
               </button>
             </div>
           </div>
