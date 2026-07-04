@@ -71,7 +71,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
       </div>
 
       {open && (
-        <div className="absolute z-50 mt-2 w-[calc(100%+2rem)] -left-4 sm:w-full sm:left-0 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shadow-2xl overflow-hidden p-3 origin-top transition-all">
+        <div className="absolute z-[9999] mt-2 w-[calc(100%+2rem)] -left-4 sm:w-full sm:left-0 rounded-2xl border border-neutral-200/80 dark:border-neutral-800/80 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl shadow-2xl overflow-hidden p-3 origin-top transition-all">
           <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest mb-3 px-1 flex justify-between items-center">
             <span>Ícones Sugeridos</span>
             <span className="px-1.5 py-0.5 rounded-md bg-neutral-100 dark:bg-neutral-800 text-[9px]">{suggestions.length}</span>

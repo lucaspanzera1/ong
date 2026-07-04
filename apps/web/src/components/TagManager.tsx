@@ -115,7 +115,7 @@ export function TagManager() {
   }
 
   return (
-    <section className="bg-white/50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-sm">
+    <section className="relative z-10 bg-white/50 dark:bg-neutral-900/50 border border-neutral-200/60 dark:border-neutral-800/60 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-sm">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 rounded-2xl bg-blue-500/10 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shadow-inner">
@@ -135,7 +135,7 @@ export function TagManager() {
 
       <div className="grid grid-cols-1 lg:grid-cols-[340px_1fr] gap-8 lg:gap-10">
         <div className="order-2 lg:order-1">
-          <form onSubmit={handleCreateTag} className="flex flex-col gap-5 lg:sticky lg:top-6 p-6 rounded-2xl bg-white dark:bg-black/20 border border-neutral-100 dark:border-neutral-800/50 shadow-sm">
+          <form onSubmit={handleCreateTag} className="flex flex-col gap-5 lg:sticky lg:top-6 z-50 p-6 rounded-2xl bg-white dark:bg-black/20 border border-neutral-100 dark:border-neutral-800/50 shadow-sm">
             <div>
               <h3 className="text-sm font-semibold text-neutral-900 dark:text-white mb-1">Nova Tag</h3>
               <p className="text-xs text-neutral-500 mb-5">Adicione uma nova categoria ao sistema.</p>
