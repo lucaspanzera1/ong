@@ -29,6 +29,45 @@ export function Header({ lang, setLang }: HeaderProps) {
     });
   }, []);
 
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          // Check if it's mobile (md breakpoint in tailwind is 768px)
+          const isMobile = window.innerWidth < 768;
+          
+          if (!isMobile) {
+            if (hidden) setHidden(false);
+            lastScrollY = window.scrollY;
+            ticking = false;
+            return;
+          }
+
+          if (window.scrollY > lastScrollY && window.scrollY > 100) {
+            setHidden(true);
+          } else if (window.scrollY < lastScrollY) {
+            setHidden(false);
+          }
+          
+          lastScrollY = window.scrollY;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    // Run once to catch initial state if mounted halfway down the page
+    handleScroll();
+    
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hidden]);
+
   const toggleTheme = () => {
     setIsDark(!isDark);
     if (!isDark) {
@@ -43,8 +82,8 @@ export function Header({ lang, setLang }: HeaderProps) {
   return (
     <motion.header 
       initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      animate={{ opacity: 1, y: hidden ? '-100%' : 0 }}
+      transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
       className="sticky top-0 z-50 w-full backdrop-blur-md bg-[#FAFAFA]/70 dark:bg-[#111111]/70 border-b border-black/5 dark:border-white/5 transition-colors duration-300"
     >
       <div className="max-w-5xl mx-auto px-6 h-20 flex items-center justify-between">

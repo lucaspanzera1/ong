@@ -6,6 +6,7 @@ import { Projects } from './components/Projects';
 import { Footer } from './components/Footer';
 import { RouteTracker } from './components/RouteTracker';
 import { CookieConsentBanner } from './components/CookieConsentBanner';
+import { AboutRedirect } from './components/AboutRedirect';
 import { Admin } from './pages/Admin';
 import { Tags } from './pages/Tags';
 import { Articles } from './pages/Articles';
@@ -85,6 +86,7 @@ function App() {
             <Route path="*" element={<NotFound lang={lang} />} />
           </Routes>
         </main>
+        <AboutRedirect lang={lang} />
         <Footer lang={lang} onOpenCookiePreferences={() => setCookieBannerOpen(true)} />
       </div>
       <CookieConsentBanner

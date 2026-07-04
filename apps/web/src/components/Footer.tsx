@@ -222,7 +222,7 @@ export function Footer({ lang, onOpenCookiePreferences }: FooterProps) {
 
             <AnimatePresence>
               {menuOpen && (
-                <div className="absolute bottom-full right-0 md:left-1/2 md:-translate-x-1/2 mb-2 z-50">
+                <div className="absolute bottom-full left-0 md:left-1/2 md:-translate-x-1/2 mb-2 z-50">
                   <motion.div
                     initial={{ opacity: 0, y: 5, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}

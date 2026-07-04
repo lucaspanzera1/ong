@@ -199,7 +199,24 @@ export function Projects({ lang }: ProjectsProps) {
             </div>
           ))
         ) : (
-          highlightedItems.map((item, index) => renderCard(item, index))
+          <>
+            {highlightedItems.map((item, index) => renderCard(item, index))}
+            {!isLoading && highlightedItems.length < 4 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: highlightedItems.length * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                className={`flex flex-col justify-center items-center h-full p-8 border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/20 text-center min-h-[250px] transition-colors duration-300 ${[0, 2].includes(highlightedItems.length) ? 'md:col-span-2' : ''}`}
+              >
+                <div className="w-12 h-12 mb-4 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-400 dark:text-neutral-500">
+                  <span className="material-symbols-outlined text-[20px]">hourglass_empty</span>
+                </div>
+                <h3 className="text-lg font-medium text-neutral-900 dark:text-white mb-2 font-mono tracking-tight">{currentContent.comingSoonTitle}</h3>
+                <p className="text-sm text-neutral-500 dark:text-neutral-400 max-w-sm">{currentContent.comingSoonDesc}</p>
+              </motion.div>
+            )}
+          </>
         )}
       </div>
 

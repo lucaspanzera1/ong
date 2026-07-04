@@ -11,7 +11,9 @@ export const projectsData = {
     sortMostViewed: "Most Viewed",
     sortMostLiked: "Most Liked",
     sortRecentlyEdited: "Recently Edited",
-    noResults: "No works found with this filter."
+    noResults: "No works found with this filter.",
+    comingSoonTitle: "More coming soon",
+    comingSoonDesc: "I'm currently brewing new ideas and projects. Stay tuned for updates!"
   },
   PT: {
     sectionTitle: "Projetos e Pesquisa",
@@ -25,6 +27,8 @@ export const projectsData = {
     sortMostViewed: "Mais Vistos",
     sortMostLiked: "Mais Curtidos",
     sortRecentlyEdited: "Editados Recentemente",
-    noResults: "Nenhum trabalho encontrado com este filtro."
+    noResults: "Nenhum trabalho encontrado com este filtro.",
+    comingSoonTitle: "Mais novidades em breve",
+    comingSoonDesc: "Estou no momento cozinhando novas ideias e projetos. Fique ligado para as novidades!"
   }
 };
