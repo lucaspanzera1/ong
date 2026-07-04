@@ -402,7 +402,7 @@ export function ArticleEditor() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
               <div className="space-y-3 flex flex-col h-full">
-                <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 transition-colors duration-300">
+                <div className="sticky top-20 z-10 bg-[#FAFAFA]/90 dark:bg-[#111111]/90 backdrop-blur-md pt-4 pb-3 -mt-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 transition-colors duration-300">
                   <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
                     Conteúdo (Markdown) {activeLang === 'EN' && '(Inglês)'}
                   </label>
@@ -455,7 +455,7 @@ export function ArticleEditor() {
               </div>
 
               <div className="space-y-3 flex flex-col h-full">
-                <div className="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-3 transition-colors duration-300">
+                <div className="sticky top-20 z-10 bg-[#FAFAFA]/90 dark:bg-[#111111]/90 backdrop-blur-md pt-4 pb-3 -mt-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 transition-colors duration-300">
                   <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
                     Pré-visualização
                   </label>
