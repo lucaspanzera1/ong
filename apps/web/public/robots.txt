@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://articles.lucaspanzera.com/sitemap.xml
+Sitemap: https://p.lucaspanzera.com/sitemap.xml
