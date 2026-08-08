@@ -33,6 +33,9 @@ export default defineConfig(({ mode }) => {
     },
     preview: {
       port,
+      // bind on all interfaces in prod so the server is reachable over the network
+      // (e.g. behind a reverse proxy on another host), not just localhost
+      host: mode === 'prod' ? true : undefined,
       allowedHosts,
       proxy,
     },
