@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Children, isValidElement } from 'react';
+import React, { useEffect, useState, Children } from 'react';
 
 const CHARS = 'abcdefghijklmnopqrstuvwxyz';
 
@@ -37,7 +37,7 @@ export function ScrambleText({ text, trigger }: ScrambleTextProps) {
     }
 
     previousText.current = text;
-    let interval: NodeJS.Timeout | null = null;
+    let interval: ReturnType<typeof setInterval> | null = null;
     
     clearInterval(interval!);
     
