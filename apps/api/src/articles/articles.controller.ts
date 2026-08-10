@@ -101,6 +101,7 @@ export class ArticlesController {
       tags?: string[];
       titleEn?: string;
       contentEn?: string;
+      seoImage?: string;
       relatedArticles?: string[];
     },
   ): Promise<Article> {
@@ -121,6 +122,7 @@ export class ArticlesController {
       tags,
       titleEn: body.titleEn?.trim(),
       contentEn: body.contentEn?.trim(),
+      seoImage: body.seoImage?.trim(),
       relatedArticles,
     });
   }
@@ -135,6 +137,7 @@ export class ArticlesController {
       content?: string;
       titleEn?: string;
       contentEn?: string;
+      seoImage?: string;
       tags?: string[];
       status?: string;
       relatedArticles?: string[];
@@ -145,6 +148,7 @@ export class ArticlesController {
       content?: string;
       titleEn?: string;
       contentEn?: string;
+      seoImage?: string;
       tags?: string[];
       status?: ArticleStatus;
       relatedArticles?: string[];
@@ -165,6 +169,9 @@ export class ArticlesController {
     }
     if (body.contentEn !== undefined) {
       updates.contentEn = body.contentEn.trim();
+    }
+    if (body.seoImage !== undefined) {
+      updates.seoImage = body.seoImage.trim();
     }
     if (body.tags !== undefined) {
       if (!Array.isArray(body.tags))

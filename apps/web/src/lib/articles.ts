@@ -9,6 +9,7 @@ export interface Article {
   slug: string;
   content: string;
   contentEn?: string;
+  seoImage?: string;
   tags: string[];
   status: ArticleStatus;
   createdAt: string;
@@ -38,6 +39,7 @@ export interface ArticleUpdate {
   content?: string;
   titleEn?: string;
   contentEn?: string;
+  seoImage?: string;
   tags?: string[];
   status?: ArticleStatus;
   relatedArticles?: string[];
@@ -99,19 +101,22 @@ export function articleExcerpt(content: string, maxLength = 160): string {
   return plain.length <= maxLength ? plain : `${plain.slice(0, maxLength).trimEnd()}...`;
 }
 
-export async function createArticle(
-  title: string,
-  content: string,
-  tags: string[],
-  relatedArticles: string[] = [],
-  titleEn?: string,
-  contentEn?: string,
-): Promise<Article> {
+export interface ArticleCreateInput {
+  title: string;
+  content: string;
+  tags: string[];
+  relatedArticles?: string[];
+  titleEn?: string;
+  contentEn?: string;
+  seoImage?: string;
+}
+
+export async function createArticle(input: ArticleCreateInput): Promise<Article> {
   const res = await fetch(`${API_URL}/articles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
-    body: JSON.stringify({ title, content, tags, relatedArticles, titleEn, contentEn }),
+    body: JSON.stringify({ relatedArticles: [], ...input }),
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);

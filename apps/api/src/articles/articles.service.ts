@@ -61,6 +61,7 @@ export interface ArticleCreate {
   tags: string[];
   titleEn?: string;
   contentEn?: string;
+  seoImage?: string;
   relatedArticles?: string[];
 }
 
@@ -69,6 +70,7 @@ export interface ArticleUpdate {
   content?: string;
   titleEn?: string;
   contentEn?: string;
+  seoImage?: string;
   tags?: string[];
   status?: ArticleStatus;
   relatedArticles?: string[];
@@ -126,6 +128,7 @@ export class ArticlesService {
         tags: data.tags,
         titleEn: data.titleEn || undefined,
         contentEn: data.contentEn || undefined,
+        seoImage: data.seoImage || undefined,
         relatedArticles,
       });
     } catch (err: unknown) {
@@ -147,6 +150,8 @@ export class ArticlesService {
       article.titleEn = updates.titleEn || undefined;
     if (updates.contentEn !== undefined)
       article.contentEn = updates.contentEn || undefined;
+    if (updates.seoImage !== undefined)
+      article.seoImage = updates.seoImage || undefined;
     if (updates.tags !== undefined) article.tags = updates.tags;
     if (updates.status !== undefined) article.status = updates.status;
     if (updates.relatedArticles !== undefined) {

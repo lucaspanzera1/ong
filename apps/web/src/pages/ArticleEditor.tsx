@@ -33,6 +33,7 @@ export function ArticleEditor() {
   const [contentEn, setContentEn] = useState('');
   const [activeLang, setActiveLang] = useState<'PT' | 'EN'>('PT');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [seoImage, setSeoImage] = useState('');
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [selectedRelated, setSelectedRelated] = useState<string[]>([]);
   const [relatedFilter, setRelatedFilter] = useState('');
@@ -43,6 +44,7 @@ export function ArticleEditor() {
   // Drag and Drop State
   const [isDragging, setIsDragging] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingSeoImage, setIsUploadingSeoImage] = useState(false);
   const [isTranslating, setIsTranslating] = useState(false);
 
   // Draft State
@@ -126,6 +128,23 @@ export function ArticleEditor() {
     }
   }
 
+  async function handleSeoImageFile(file: File) {
+    if (!file.type.startsWith('image/')) {
+      setError('Por favor, faça upload apenas de imagens.');
+      return;
+    }
+    setIsUploadingSeoImage(true);
+    setError(null);
+    try {
+      const url = await uploadImage(file);
+      setSeoImage(url);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Falha ao fazer upload da imagem');
+    } finally {
+      setIsUploadingSeoImage(false);
+    }
+  }
+
   useEffect(() => {
     listTags().then(setAvailableTags).catch(() => {});
     listArticlesForAdmin()
@@ -139,6 +158,7 @@ export function ArticleEditor() {
               content: article.content,
               titleEn: article.titleEn ?? '',
               contentEn: article.contentEn ?? '',
+              seoImage: article.seoImage ?? '',
               tags: article.tags,
               relatedArticles: article.relatedArticles,
             };
@@ -147,6 +167,7 @@ export function ArticleEditor() {
             setContent(original.content);
             setTitleEn(original.titleEn);
             setContentEn(original.contentEn);
+            setSeoImage(original.seoImage);
             setSelectedTags(original.tags);
             setSelectedRelated(original.relatedArticles);
 
@@ -184,6 +205,7 @@ export function ArticleEditor() {
     setContent(pendingDraft.content);
     setTitleEn(pendingDraft.titleEn);
     setContentEn(pendingDraft.contentEn);
+    setSeoImage(pendingDraft.seoImage);
     setSelectedTags(pendingDraft.tags);
     setSelectedRelated(pendingDraft.relatedArticles);
     setPendingDraft(null);
@@ -204,6 +226,7 @@ export function ArticleEditor() {
       content,
       titleEn,
       contentEn,
+      seoImage,
       tags: selectedTags,
       relatedArticles: selectedRelated,
     };
@@ -215,7 +238,7 @@ export function ArticleEditor() {
       }
     }, 800);
     return () => clearTimeout(handle);
-  }, [draftDecided, draftId, title, content, titleEn, contentEn, selectedTags, selectedRelated]);
+  }, [draftDecided, draftId, title, content, titleEn, contentEn, seoImage, selectedTags, selectedRelated]);
 
   function toggleTag(name: string) {
     setSelectedTags((prev) =>
@@ -268,19 +291,21 @@ export function ArticleEditor() {
           content: content.trim(),
           titleEn: titleEn.trim(),
           contentEn: contentEn.trim(),
+          seoImage: seoImage.trim(),
           tags: selectedTags,
           relatedArticles: selectedRelated,
         });
         clearDraft(draftId);
       } else {
-        await createArticle(
-          title.trim(),
-          content.trim(),
-          selectedTags,
-          selectedRelated,
-          titleEn.trim(),
-          contentEn.trim(),
-        );
+        await createArticle({
+          title: title.trim(),
+          content: content.trim(),
+          tags: selectedTags,
+          relatedArticles: selectedRelated,
+          titleEn: titleEn.trim(),
+          contentEn: contentEn.trim(),
+          seoImage: seoImage.trim(),
+        });
         clearDraft(draftId);
       }
       navigate(ADMIN_PATH);
@@ -467,6 +492,58 @@ export function ArticleEditor() {
               </div>
             </div>
 
+            <div className="space-y-3">
+              <label className="font-mono text-[10px] tracking-widest uppercase text-neutral-500 dark:text-neutral-400">
+                Imagem de SEO (og:image)
+              </label>
+              <div className="flex flex-col sm:flex-row gap-3">
+                {seoImage && (
+                  <img
+                    src={seoImage}
+                    alt="Pré-visualização da imagem de SEO"
+                    className="w-full sm:w-40 h-24 object-cover border border-neutral-200 dark:border-neutral-800 shrink-0"
+                  />
+                )}
+                <div className="flex-1 flex flex-col gap-2">
+                  <input
+                    type="text"
+                    value={seoImage}
+                    onChange={(e) => setSeoImage(e.target.value)}
+                    placeholder="https://lucaspanzera.com/s/uploads/..."
+                    className="w-full px-4 py-2.5 text-sm bg-white dark:bg-[#151515] border border-neutral-200 dark:border-neutral-800 focus:border-neutral-900 dark:focus:border-neutral-300 text-neutral-900 dark:text-white focus:outline-none transition-colors placeholder:text-neutral-400"
+                  />
+                  <div className="flex items-center gap-3">
+                    <label className="flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest border border-neutral-200 dark:border-neutral-800 text-neutral-500 dark:text-neutral-400 hover:border-neutral-900 dark:hover:border-neutral-300 hover:text-neutral-900 dark:hover:text-white transition-colors cursor-pointer">
+                      <span className={`material-symbols-outlined text-[16px] ${isUploadingSeoImage ? 'animate-spin' : ''}`}>
+                        {isUploadingSeoImage ? 'progress_activity' : 'upload'}
+                      </span>
+                      {isUploadingSeoImage ? 'Enviando...' : 'Enviar imagem'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={isUploadingSeoImage}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleSeoImageFile(file);
+                          e.target.value = '';
+                        }}
+                      />
+                    </label>
+                    {seoImage && (
+                      <button
+                        type="button"
+                        onClick={() => setSeoImage('')}
+                        className="font-mono text-[10px] uppercase tracking-widest text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors"
+                      >
+                        Remover
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 min-h-[600px]">
               <div className="space-y-3 flex flex-col h-full">
                 <div className="sticky top-20 z-10 bg-[#FAFAFA]/90 dark:bg-[#111111]/90 backdrop-blur-md pt-4 pb-3 -mt-4 flex items-center justify-between border-b border-black/10 dark:border-white/10 transition-colors duration-300">
@@ -547,7 +624,7 @@ export function ArticleEditor() {
             <div className="flex justify-end pt-8 border-t border-black/10 dark:border-white/10 transition-colors duration-300">
               <button
                 type="submit"
-                disabled={submitting || isUploadingImage || isTranslating}
+                disabled={submitting || isUploadingImage || isUploadingSeoImage || isTranslating}
                 className="w-full sm:w-auto px-8 py-4 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 text-sm font-medium tracking-wide uppercase hover:bg-neutral-800 dark:hover:bg-neutral-200 transition-colors disabled:opacity-50 flex items-center justify-center gap-3"
               >
                 <span className={`material-symbols-outlined text-xl ${submitting || isUploadingImage ? 'animate-spin' : ''}`}>

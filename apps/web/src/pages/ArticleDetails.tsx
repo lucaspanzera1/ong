@@ -49,6 +49,42 @@ export function ArticleDetails({ lang }: ArticleDetailsProps) {
     listTags().then(setTags).catch(() => {});
   }, [slug]);
 
+  useEffect(() => {
+    if (!article) return;
+
+    const title = `${articleTitle(article, lang)} — panzera.`;
+    const description = articleExcerpt(articleBody(article, lang), 200);
+    const url = `${window.location.origin}/articles/${article.slug}`;
+    const image = article.seoImage || `${window.location.origin}/seo-cover.png`;
+
+    const previousTitle = document.title;
+    document.title = title;
+
+    const updated: Array<{ el: HTMLMetaElement; previous: string }> = [];
+    function setMeta(selector: string, content: string) {
+      const el = document.querySelector<HTMLMetaElement>(selector);
+      if (!el) return;
+      updated.push({ el, previous: el.content });
+      el.content = content;
+    }
+
+    setMeta('meta[property="og:title"]', title);
+    setMeta('meta[property="og:description"]', description);
+    setMeta('meta[property="og:url"]', url);
+    setMeta('meta[property="og:image"]', image);
+    setMeta('meta[property="twitter:title"]', title);
+    setMeta('meta[property="twitter:description"]', description);
+    setMeta('meta[property="twitter:url"]', url);
+    setMeta('meta[property="twitter:image"]', image);
+
+    return () => {
+      document.title = previousTitle;
+      updated.forEach(({ el, previous }) => {
+        el.content = previous;
+      });
+    };
+  }, [article, lang]);
+
   async function handleVote(value: 1 | -1) {
     if (!slug || !article || voting) return;
     setVoting(true);

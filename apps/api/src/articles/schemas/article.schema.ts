@@ -22,6 +22,9 @@ export class Article {
   @Prop()
   contentEn?: string;
 
+  @Prop({ trim: true })
+  seoImage?: string;
+
   @Prop({ type: [String], default: [] })
   tags: string[];
 

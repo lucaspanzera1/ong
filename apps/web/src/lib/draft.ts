@@ -5,6 +5,7 @@ export interface ArticleDraft {
   content: string;
   titleEn: string;
   contentEn: string;
+  seoImage: string;
   tags: string[];
   relatedArticles: string[];
   savedAt: string;
@@ -40,6 +41,7 @@ export function isDraftEmpty(draft: Omit<ArticleDraft, 'savedAt'>): boolean {
     !draft.content.trim() &&
     !draft.titleEn.trim() &&
     !draft.contentEn.trim() &&
+    !draft.seoImage.trim() &&
     draft.tags.length === 0 &&
     draft.relatedArticles.length === 0
   );
@@ -55,6 +57,7 @@ export function draftMatches(
     draft.content === other.content &&
     draft.titleEn === other.titleEn &&
     draft.contentEn === other.contentEn &&
+    draft.seoImage === other.seoImage &&
     draft.tags.length === other.tags.length &&
     draft.tags.every((t, i) => t === other.tags[i]) &&
     draft.relatedArticles.length === other.relatedArticles.length &&
