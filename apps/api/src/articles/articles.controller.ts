@@ -19,6 +19,11 @@ import {
   VoteResult,
 } from './articles.service';
 import { VisitorService } from './visitor.service';
+import { articleExcerpt, escapeHtml } from './og.util';
+
+const SITE_NAME = 'panzera.';
+const DEFAULT_DESCRIPTION =
+  "Lucas Panzera's personal website, featuring projects, research, and articles.";
 
 const ARTICLE_STATUSES: ArticleStatus[] = ['published', 'archived'];
 
@@ -75,6 +80,58 @@ export class ArticlesController {
     return { ...plain, relatedArticles, userVote } as unknown as Article & {
       userVote: ArticleWithVote['userVote'];
     };
+  }
+
+  // Server-rendered meta tags for social/link-preview crawlers (Discord,
+  // Twitter, Facebook, LinkedIn, Slack, ...), which don't execute the SPA's
+  // JS and would otherwise only ever see index.html's generic site-wide
+  // tags. Nginx routes those user agents here instead of the SPA shell for
+  // /articles/:slug — see deploy notes. Not meant for real visitors.
+  @Get(':slug/og')
+  async og(
+    @Param('slug') slug: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<string> {
+    const appUrl = (process.env.APP_URL ?? '').replace(/\/+$/, '');
+    let article: Article | null = null;
+    try {
+      article = await this.articlesService.findPublishedBySlug(slug);
+    } catch {
+      article = null;
+    }
+
+    if (!article) res.status(404);
+
+    const title = article ? `${article.title} — ${SITE_NAME}` : SITE_NAME;
+    const description = article
+      ? articleExcerpt(article.content, 200)
+      : DEFAULT_DESCRIPTION;
+    const image = article?.seoImage || `${appUrl}/seo-cover.png`;
+    const url = article ? `${appUrl}/articles/${article.slug}` : appUrl;
+
+    res.type('html');
+    return `<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="UTF-8" />
+<title>${escapeHtml(title)}</title>
+<meta name="description" content="${escapeHtml(description)}" />
+<meta property="og:type" content="article" />
+<meta property="og:site_name" content="${escapeHtml(SITE_NAME)}" />
+<meta property="og:url" content="${escapeHtml(url)}" />
+<meta property="og:title" content="${escapeHtml(title)}" />
+<meta property="og:description" content="${escapeHtml(description)}" />
+<meta property="og:image" content="${escapeHtml(image)}" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:url" content="${escapeHtml(url)}" />
+<meta property="twitter:title" content="${escapeHtml(title)}" />
+<meta property="twitter:description" content="${escapeHtml(description)}" />
+<meta property="twitter:image" content="${escapeHtml(image)}" />
+</head>
+<body>
+<a href="${escapeHtml(url)}">${escapeHtml(title)}</a>
+</body>
+</html>`;
   }
 
   @Post(':slug/vote')
